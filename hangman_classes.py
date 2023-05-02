@@ -1,5 +1,5 @@
 import string
-from hangman_data import getRandomAnswer
+from hangman_data import getAnswerFromProvider
 from hangman_messages import Msgs
 from hangman_ui import HangmanUI 
 
@@ -41,7 +41,7 @@ class Hangman:
 
   def __init__(self, searchTerm):
     self.guessesLeft = 6
-    word = getRandomAnswer(searchTerm)
+    word = getAnswerFromProvider(searchTerm)
     self.answer = Answer(word)
     self.partialWord = []
     self.wrongGuesses = []

@@ -8,8 +8,12 @@ def getAnswerList():
   answerList = ["door hinge"]
   return answerList
 
-def getRandomAnswer(searchTerm):
-  #return random.choice(getAnswerList())
+def getAnswer(answer):
+  answer_list = getAnswerList()
+  return random.choice(answer_list)
+
+def getAnswerFromProvider(searchTerm):
+  
   api = Datamuse()
   wordsData = api.words(rel_rhy=searchTerm)
   #print(wordsData)
