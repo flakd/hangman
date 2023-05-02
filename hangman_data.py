@@ -1,5 +1,6 @@
 import random
 from datamuse import Datamuse
+import string
 
 
 def getAnswerList():
@@ -11,7 +12,7 @@ def getRandomAnswer(searchTerm):
   #return random.choice(getAnswerList())
   api = Datamuse()
   wordsData = api.words(rel_rhy=searchTerm)
-  print(wordsData)
+  #print(wordsData)
   #wordsJSON = json.loads(wordsData)
   #for words in wordsJSON:
   wordArray = []
@@ -19,7 +20,11 @@ def getRandomAnswer(searchTerm):
     #print(words["word"])
     wordArray.append(words["word"])
   length = len(wordArray)
-  print(length)
+  #print(length)
   word = random.choice(wordArray)
-  print(word)  
+  #print(word)  
   return word
+
+def getSearchTerm():
+  searchTerm = input("\nPick a rhyming word: ")
+  return searchTerm

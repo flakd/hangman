@@ -1,5 +1,4 @@
 import string
-import os
 from hangman_data import getRandomAnswer
 from hangman_messages import Msgs
 from hangman_ui import HangmanUI 
@@ -124,6 +123,7 @@ class Hangman:
 
 
   def start(self):
+    self.__init__(getSearchTerm())
     while self.partialWordAsStr() != self.answer.value and self.guessesLeft > 0:
       guess = self.getInput(Msgs.inputPhrase,Msgs.dblLeterErrMsg)
       statusMsg = self.isGuessInAnswer(guess)
