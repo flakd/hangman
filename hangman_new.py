@@ -6,14 +6,18 @@ import string
 
 class AnswerResponse:    
   _num_answer_words: int 
-  _answer_words = []
+  _answer_list: list[str]
+  _answer_words: list[str]
   _numTotalLetters: int
   _numUniqueLetters: int
   _answer_word_group: str
+  search_term:str
 
   num_answers: int 
   response_msg: str
   was_successful: bool
+  max_syllables: int
+  num_syllables_dict: dict
 
   def __setOtherDefaults(self,word_group):  
     self._num_answer_words = self.get_num_answer_words(word_group)
@@ -40,20 +44,20 @@ class AnswerResponse:
     return len(self.get_answer_words(word))
 
 
-class AnswerProvider:
-  def __get_answerList(self) -> list[str]:
+class AnswerListProvider:
+  def __get_answer_list(self) -> list[str]:
     answerList = ["ardvark", "baboon", "cougar", "dingo", "door hinge"]
     return answerList
 
   def get_answer_from_list(self) -> str:
-    answer_list = self.__get_answerList()
+    answer_list = self.__get_answer_list()
     return random.choice(answer_list)  
   
-  def get_answer(self, searchTerm:str) -> AnswerResponse:
+  def get_answer_response(self, searchTerm:str) -> AnswerResponse:
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'}
     url = "https://api.datamuse.com/words?rel_rhy=" + searchTerm + "&max=1000"
     answer_response = AnswerResponse()
-    message: str
+    message = ""
     temp_list= []
     try:
       r = requests.get(url, headers=headers, timeout=3)
@@ -63,7 +67,7 @@ class AnswerProvider:
       else:
         # HTTP call was successful, but we don't know if we returned any results yet      
         answer_response.was_successful = True
-        json_data = json.loads(r.text)
+        json_data = json.loads(r.text)        
         #print(json_data)
         for answer in json_data:
           if "score" in answer and answer["score"] > 100:
@@ -76,29 +80,7 @@ class AnswerProvider:
         answer_list = []
         for wordGroup in temp_list:
           answer_list.append(wordGroup)
-        num_answers = len(answer_list)
-        answer_response.num_answers = num_answers
-        if num_answers == 0:
-          message = "Sorry I couldn't find any words that matched what you entered (" + searchTerm + ")"
-        else:
-          #max_syllables = max(answer_list, key=lambda mx: mx['numSyllables'])
-          all_num_syllables = []
-          for answer in answer_list:
-            all_num_syllables.append(answer["numSyllables"])
-          max_syllables = max(all_num_syllables)
-          num_syllables_dict = dict()
-          for num_syllables in range(max_syllables):
-            num_syllables_dict[num_syllables+1] = []
-          for answer in answer_list:
-            num_syllables_dict[answer['numSyllables']].append(answer["word"]) 
-          num_syllables_choice = hm_ui.get_num_syllables_choice(max_syllables)        
-          answers_to_choose_from = num_syllables_dict[num_syllables_choice]
-          word_group = random.choice(answers_to_choose_from)
-          answer_response.set_word_group(word_group)      
-          message = "There are " + str(len(answers_to_choose_from)) + " word(s) with " + \
-            str(num_syllables_choice) + " syllables that rhyme with " + searchTerm + ". I'll randomly select one for you"
-
-      answer_response.response_msg = message
+        answer_response._answer_list = answer_list
       r.raise_for_status()
     except requests.exceptions.HTTPError as errh:
       print ("\n\nHttp Error:",errh,"\n\n")
@@ -108,13 +90,10 @@ class AnswerProvider:
     except requests.exceptions.Timeout as errt:
       print ("\n\nTimeout Error:",errt,"\n\n")
     except requests.exceptions.RequestException as err:
-      print ("\n\nOOps: Something Else",err,"\n\n")    
-
+      print ("\n\nOops: Something Else",err,"\n\n")  
+    answer_response.response_msg = message  
     return answer_response      
-
-
-   
-
+  
 
 class Utils:
   alphaDict = dict.fromkeys(string.ascii_lowercase, 0)
@@ -148,16 +127,14 @@ class Utils:
           numUniqueLetters += 1
       return numUniqueLetters
 
-
-
 class HangmanModel:  
   _answer: AnswerResponse
   _guess_letter: str
-  _answer_provider: AnswerProvider
+  _answer_provider: AnswerListProvider
   _guesses_remaining: int
   _answer_guess: list[str]
   
-  def __init__(self, answer_provider: AnswerProvider):
+  def __init__(self, answer_provider: AnswerListProvider):
     self._guesses_remaining = 6
     self._answer_provider = answer_provider
 
@@ -174,29 +151,59 @@ class HangmanModel:
           self._answer_guess[idx] = self._guess_letter
       message = "Updated Guess-Answer: " + self.__get_answer_guess_as_UI()
     return message
-
-
-
-
-
+  
+  def was_search_successful(self, answer_response:AnswerResponse, searchTerm:str) -> bool:
+    num_answers = len(answer_response)
+    answer_response.num_answers = num_answers
+    if num_answers == 0:
+      answer_response.was_successful = False
+      message = "Sorry I couldn't find any words that matched what you entered (" + searchTerm + ")"
+    else:
+      answer_response.was_successful = True
+      #max_syllables = max(answer_list, key=lambda mx: mx['numSyllables'])
+      all_num_syllables = []
+      for answer in answer_response._answer_list:
+        all_num_syllables.append(answer["numSyllables"])
+      answer_response.max_syllables = max(all_num_syllables)
+      answer_response.num_syllables_dict = dict()
+      for num_syllables in range(answer_response.max_syllables):
+        answer_response.num_syllables_dict[num_syllables+1] = []
+      for answer in answer_response._answer_list:
+        answer_response.num_syllables_dict[answer['numSyllables']].append(answer["word"])
+    return answer_response
+  
+  
 class HangmanUI:
   _hmm: HangmanModel
-  _ap: AnswerProvider
+  _ap: AnswerListProvider
 
   def start(self, hmm:HangmanModel) -> None:
     searchTerm = self.get_search_term_UI()
-    answer = hmm.ap.get_answer(searchTerm)
-    if answer.num_answers == 0:
-      print(answer.response_msg)
+    answer_response = hmm._answer_provider.get_answer_response(searchTerm)
+    if not hmm.was_search_successful(answer_response):
+      print(answer_response.response_msg)
       self.start()
     else:
-      print(answer.response_msg)
-      print(answer.get_word_group)
-    answer_guess = len(answer.get_word_group) * [""]
-    while answer_guess != answer.get_word_group or hmm._guesses_remaining > 0:
+      print(answer_response.response_msg)
+      max_syllables = answer_response.max_syllables
+      # search successful, let's narrow down the results
+      num_syllables_choice = self.get_num_syllables_choice_UI(max_syllables)        
+      answers_to_choose_from = answer_response.num_syllables_dict[num_syllables_choice]
+      word_group = random.choice(answers_to_choose_from)
+      answer_response.set_word_group(word_group)      
+      message = "There are " + str(len(answers_to_choose_from)) + " word(s) with " + \
+        str(num_syllables_choice) + " syllables that rhyme with " + searchTerm + ". I'll randomly select one for you"
+
+      answer_response.response_msg = message  
+
+
+      print(answer_response.get_word_group)
+
+    answer_guess = len(answer_response.get_word_group) * [""]
+    while answer_guess != answer_response.get_word_group or hmm._guesses_remaining > 0:
       self.__main_game_loop(hmm, ap)
 
-  def __main_game_loop(self, hmm:HangmanModel, ap:AnswerProvider) -> None:
+  def __main_game_loop(self, hmm:HangmanModel, ap:AnswerListProvider) -> None:
     guess = self.__get_guess_UI()
     isCorrect = hmm.is_guess_in_answer()
     progressMsg = hmm.update_game_state(isCorrect)
@@ -237,10 +244,10 @@ class HangmanUI:
     pass 
 
 
-ap = AnswerProvider()
+ap = AnswerListProvider()
 hmm = HangmanModel(ap)
 hm_UI = HangmanUI()
-hm_UI.start(hmm, ap)
+hm_UI.start(hmm)
 
 
 
