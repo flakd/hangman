@@ -2,7 +2,9 @@ import random
 #from datamuse import Datamuse
 import requests
 import json
+import os
 import string
+from hangman_messages import Msgs
 
 class AnswerResponse:    
   _num_answer_words: int 
@@ -10,6 +12,7 @@ class AnswerResponse:
   _answer_words: list[str]
   _numTotalLetters: int
   _numUniqueLetters: int
+  num_syllables: int
   _answer_word_group: str
   search_term:str
 
@@ -27,7 +30,7 @@ class AnswerResponse:
 
   def set_word_group(self, word_group):
     for letter in word_group:
-      if letter not in Utils.alphaDict:
+      if letter not in Utils.alpha_dict:
         print("ERROR: somehow after all the REST calls and dbl-chking, this word group is not alpha + SPACE")
         print("ABORTING APPLICATION")
         exit()
@@ -96,13 +99,18 @@ class AnswerListProvider:
   
 
 class Utils:
-  alphaDict = dict.fromkeys(string.ascii_lowercase, 0)
-  alphaDict[" "] = 0
+  alpha_dict_lower = dict.fromkeys(string.ascii_lowercase, 0)
+  #alpha_dict_upper = dict.fromkeys(string.ascii_uppercase, 0)
+  alpha_dict = dict()
+  #alpha_dict[" "] = 0
+  alpha_dict.update(alpha_dict_lower)
+  #alpha_dict.update(alpha_dict_upper)
+
 
   def is_whole_word_alpha(word) -> bool: 
     is_alpha = True
     for letter in word:
-      if letter not in Utils.alphaDict:
+      if letter not in Utils.alpha_dict:
         is_alpha = False
     return is_alpha and word != " " and \
         not word.isnumeric() and word != None \
@@ -118,119 +126,244 @@ class Utils:
   def getNumUniqueLetters(word) -> int:
       for letter in word:
         try:
-          Utils.alphaDict[letter] += 1
+          Utils.alpha_dict[letter] += 1
         except:
           print(f"The key ['{letter}'] is missing in alphaDict")
       numUniqueLetters = 0
-      for el in Utils.alphaDict:
-        if Utils.alphaDict[el] > 0:
+      for el in Utils.alpha_dict:
+        if Utils.alpha_dict[el] > 0:
           numUniqueLetters += 1
       return numUniqueLetters
 
 class HangmanModel:  
-  _answer: AnswerResponse
-  _guess_letter: str
+  answer_response: AnswerResponse
+  _current_guess_letter: str
   _answer_provider: AnswerListProvider
   _guesses_remaining: int
   _answer_guess: list[str]
-  
-  def __init__(self, answer_provider: AnswerListProvider):
+  _wrong_guesses: list[str]
+
+  def __init__(self, answer_provider: AnswerListProvider): 
     self._guesses_remaining = 6
-    self._answer_provider = answer_provider
+    self._answer_provider = answer_provider    
 
-  def is_guess_in_answer(self) -> bool:
-    return self._guess_letter in self._answer.word_group
+  def __init__(self):
+    self._guesses_remaining = 6
+    self._wrong_guesses = []
 
-  def update_game_state(self, isCorrect: bool) -> None:
-    if not self.__is_guess_in_answer():
+  def get_init_answer_guess(self):
+    self._answer_guess = len(hmm.answer_response.get_word_group()) * [""]
+    return self._answer_guess
+
+  #2
+  def is_guess_an_alpha(self, guess:str) -> bool:
+    result = {}
+    if guess not in Utils.alpha_dict.keys():
+      result["is_alpha"] = False
+      result["message"] = "the char '" + guess +"', is not an alphabetic letter. Please try again!\n"
+    else:
+      result["is_alpha"] = True
+      result["message"] = None
+    return result
+
+  #3  
+  def is_guess_already_in_answer_guess(self, guess:str) -> bool:
+    result = {}
+    if guess in self._answer_guess:
+      result["in_answer_guess"] = True
+      result["message"] = "The letter '" + guess + "', is correct! But, you've guessed it before! Try again!\n"
+    else:
+      result["in_answer_guess"] = False
+      result["message"] = None
+    return result
+      
+  #4
+  def is_guess_a_previous_wrong_guess(self, guess:str) -> bool:
+    result = {}
+    result["in_wrong_guesses"] = False
+    if guess in self._wrong_guesses:
+      result["in_wrong_guesses"] = True
+      result["message"] = "Wrong! But, you've guessed it before! So, I won't penalize you again.\n"  
+    return result
+
+
+  #5
+  def is_guess_in_answer(self, guess:str) -> bool:
+    result = {}
+    result["is_correct_guess"] = False
+    self._current_guess_letter = guess
+    result["is_correct_guess"] = self._current_guess_letter in self.answer_response._answer_word_group
+    if result["is_correct_guess"]:
+      wg = hmm.answer_response._answer_word_group
+      for idx in range(len(wg)):
+        if wg[idx] == self._current_guess_letter:
+          self._answer_guess[idx] = self._current_guess_letter
+      #result["message"] = "Updated Guess-Answer: " + hm_UI.format_answer_guess_for_UI(self._answer_guess)
+      result["message"] = "The letter '" + guess + "', is correct! Good Guess! What will you guess next?\n"          
+    else:
+      result["message"] = "Sorry, that guess is wrong!\n"
+    return result
+
+  #6
+  def update_game_state(self, is_correct: bool, guess:str) -> None:
+    message: str
+    if is_correct:
+      wg = self.answer_response.get_word_group()
+      for idx in range(len(wg)):
+        if wg[idx] == guess:
+          self._answer_guess[idx] = guess
+      message = "Correct! Good Guess!"
+    else:
       self._guesses_remaining -= 1
-      message = "Wrong! You have " + str(self._guesses_remaining) + " guesses remaining."
-    else:
-      for idx in range(len(self._answer.word_group)):
-        if self._answer.word_group[idx] == self._guess_letter:
-          self._answer_guess[idx] = self._guess_letter
-      message = "Updated Guess-Answer: " + self.__get_answer_guess_as_UI()
+      self._wrong_guesses.append(guess)      
+      message = "Sorry, the letter '" + guess + "' is a wrong guess! Try again!\n"
+      message = "\n You have " + str(self._guesses_remaining) + " guesses remaining!\n"
     return message
+
+
   
-  def was_search_successful(self, answer_response:AnswerResponse, searchTerm:str) -> bool:
-    num_answers = len(answer_response)
-    answer_response.num_answers = num_answers
+  def was_search_successful(self, searchTerm:str) -> bool:
+    num_answers = len(hmm.answer_response._answer_list)
+    hmm.answer_response.num_answers = num_answers
     if num_answers == 0:
-      answer_response.was_successful = False
+      hmm.answer_response.was_successful = False
       message = "Sorry I couldn't find any words that matched what you entered (" + searchTerm + ")"
+      return False
     else:
-      answer_response.was_successful = True
+      hmm.answer_response.was_successful = True
       #max_syllables = max(answer_list, key=lambda mx: mx['numSyllables'])
+
+      #  we want to get the range of syllables in these answer words.  
+      #  so we need the max number of syllables from whichever word 
+      #  has the most syllables. but we don't know which word that is.
+      #  
+      #  so we will start by building an array of all the num syllables
+      #  of all the words, then take the max() of that array.  Then 1 to 
+      #  this number is our range of all possible number of syllables      
       all_num_syllables = []
-      for answer in answer_response._answer_list:
+      for answer in hmm.answer_response._answer_list:
         all_num_syllables.append(answer["numSyllables"])
-      answer_response.max_syllables = max(all_num_syllables)
-      answer_response.num_syllables_dict = dict()
-      for num_syllables in range(answer_response.max_syllables):
-        answer_response.num_syllables_dict[num_syllables+1] = []
-      for answer in answer_response._answer_list:
-        answer_response.num_syllables_dict[answer['numSyllables']].append(answer["word"])
-    return answer_response
-  
+      hmm.answer_response.max_syllables = max(all_num_syllables)
+
+      #  now we want to sort/filter each word by the num syllables.  so
+      #  we create a dict of string arrays of all possible num syllables 
+      #  (e.g. "1", "2", "3", "4", etc.).
+      hmm.answer_response.num_syllables_dict = dict()
+      for num_syllables in range(hmm.answer_response.max_syllables):
+        hmm.answer_response.num_syllables_dict[num_syllables+1] = []
+
+      #  Now, we iterate over all possible ANSWER RESPONSES and place ONLY 
+      #  the WORDthem in the appropriate dict slot/appending them to the 
+      #  array in that slot        
+      for answer in hmm.answer_response._answer_list:
+        hmm.answer_response.num_syllables_dict[answer['numSyllables']].append(answer["word"])
+      return True
+      
+  def choose_answer_from_answer_list(self, searchTerm, num_syllables_choice):
+    self.answer_response.num_syllables = num_syllables_choice
+    answers_to_choose_from = self.answer_response.num_syllables_dict[num_syllables_choice]
+    word_group = random.choice(answers_to_choose_from)
+    hmm.answer_response.set_word_group(word_group)      
+    message = "There are " + str(len(answers_to_choose_from)) + " \
+      answer(s) to guess with " + str(num_syllables_choice) + \
+      " syllables that rhyme with " + searchTerm + \
+      ". I'll randomly select one for you"
+    hmm.answer_response.response_msg = message  
+    answer_guess = hmm.get_init_answer_guess()  
   
 class HangmanUI:
-  _hmm: HangmanModel
-  _ap: AnswerListProvider
 
   def start(self, hmm:HangmanModel) -> None:
-    searchTerm = self.get_search_term_UI()
-    answer_response = hmm._answer_provider.get_answer_response(searchTerm)
-    if not hmm.was_search_successful(answer_response):
-      print(answer_response.response_msg)
-      self.start()
+    searchTerm = self.get_search_term_from_UI()
+    hmm.answer_response = ap.get_answer_response(searchTerm)
+    print(hmm.answer_response.response_msg)
+    if not hmm.was_search_successful(searchTerm):
+      self.start(hmm)
     else:
-      print(answer_response.response_msg)
-      max_syllables = answer_response.max_syllables
       # search successful, let's narrow down the results
-      num_syllables_choice = self.get_num_syllables_choice_UI(max_syllables)        
-      answers_to_choose_from = answer_response.num_syllables_dict[num_syllables_choice]
-      word_group = random.choice(answers_to_choose_from)
-      answer_response.set_word_group(word_group)      
-      message = "There are " + str(len(answers_to_choose_from)) + " word(s) with " + \
-        str(num_syllables_choice) + " syllables that rhyme with " + searchTerm + ". I'll randomly select one for you"
+      num_syllables_choice = self.get_num_syllables_choice_from_UI(hmm.answer_response.max_syllables)        
+      hmm.choose_answer_from_answer_list(searchTerm, num_syllables_choice)
+      print(hmm.answer_response.get_word_group())
+      self.__main_game_loop()
+    
+    print("leaving game now")
+    exit()  
 
-      answer_response.response_msg = message  
+  def __main_game_loop(self) -> None:
+    statusMsg = "\n"
+    isCorrect = False
+    final_guess_incorrrect = ("".join(hmm._answer_guess) != hmm.answer_response.get_word_group())
+    
+    while final_guess_incorrrect and hmm._guesses_remaining > 0:        
+      partialWord = self.format_answer_guess_for_UI()
+      wGuesses = " ".join(hmm._wrong_guesses)
+      #self.draw(self, partialWord, wGuesses, Msgs.getBanner(self), statusMsg, Msgs.getFooter(self))    
+      self.draw(partialWord, wGuesses, Msgs.getBanner(hmm), statusMsg, Msgs.getFooter(hmm))   
 
+      #1
+      guess = self.__get_guess_from_UI(Msgs.inputPhrase, Msgs.dblLeterErrMsg)
 
-      print(answer_response.get_word_group)
+      #2
+      if not hmm.is_guess_an_alpha(guess)["is_alpha"]:        
+        statusMsg = hmm.is_guess_an_alpha(guess)["message"]
+        isCorrect = False
+        continue
+      #3
+      elif hmm.is_guess_already_in_answer_guess(guess)["in_answer_guess"]:        
+        statusMsg = hmm.is_guess_already_in_answer_guess(guess)["message"]
+        isCorrect = False
+        continue
+      #4
+      elif hmm.is_guess_a_previous_wrong_guess(guess)["in_wrong_guesses"]:
+        statusMsg = hmm.is_guess_a_previous_wrong_guess(guess)["message"]
+        isCorrect = False
+        continue
+      #5
+      elif not hmm.is_guess_in_answer(guess)["is_correct_guess"]:
+        isCorrect = False 
+      else:
+        isCorrect = True
+      statusMsg = hmm.is_guess_in_answer(guess)["message"]
 
-    answer_guess = len(answer_response.get_word_group) * [""]
-    while answer_guess != answer_response.get_word_group or hmm._guesses_remaining > 0:
-      self.__main_game_loop(hmm, ap)
+      #6
+      progressMsg = hmm.update_game_state(isCorrect, guess)
+      self.__report_progress(progressMsg)
 
-  def __main_game_loop(self, hmm:HangmanModel, ap:AnswerListProvider) -> None:
-    guess = self.__get_guess_UI()
-    isCorrect = hmm.is_guess_in_answer()
-    progressMsg = hmm.update_game_state(isCorrect)
-    self.__report_progress(progressMsg)
+    partialWord = self.format_answer_guess_for_UI()
+    wGuesses = " ".join(hmm._wrong_guesses)
+    self.draw(partialWord, wGuesses, Msgs.getBanner(hmm), statusMsg, Msgs.getFooter(hmm))   
 
-  def __get_guess_UI(self) -> str:
-    self._guess_letter = input("Please guess a letter: ")
+  def __get_guess_from_UI(self, inputPhrase, dblLeterErrMsg):
+    print()
+    print()
+    guess = input(inputPhrase).lower()
+    print()
+    while len(guess) > 1:
+      print (dblLeterErrMsg)
+      guess = input(inputPhrase)
+    return guess    
 
-  def __get_answer_guess_UI(self):
+  def format_answer_guess_for_UI(self):
     asUI = []
-    for el in self._answer_guess:
+    for el in hmm._answer_guess:
       if el == "":
         asUI.append("_")
       else:
         asUI.append(el)        
     return " ".join(asUI)
 
-  def get_num_syllables_choice_UI(self,max_syllables) -> int:
+  def get_num_syllables_choice_from_UI(self,max_syllables) -> int:
     num_syllable_choice = ""
     isInt = False
     while not isInt: 
-      num_syllable_choice = input(f"\nI have found words ranging from 2 to {max_syllables} syllables. How large a word do you want to guess (2-{max_syllables})?").lower()
+      num_syllable_choice = input(\
+        f"\nI have found answers to guess ranging from 2 to {max_syllables} syllables. How large a word do you want to guess (2-{max_syllables})? "\
+      ).lower()
       if Utils.is_string_an_int_between(num_syllable_choice,2,max_syllables):
         isInt = True
     return int(num_syllable_choice)
   
-  def get_search_term_UI(self) -> str:
+  def get_search_term_from_UI(self) -> str:
     searchTerm = ""
     isString = False
     while not isString: 
@@ -243,9 +376,43 @@ class HangmanUI:
     print(progressMsg)
     pass 
 
+  def draw(self, pWord, wGuesses, banner, msg, footer):
+      # Clearing the Screen
+    os.system('clear')    
+    print(banner, footer)
+    print()
+
+    bodyPartsHead = "   "
+    bodyPartsTorso = "   "
+    bodyPartsLegs = "   "
+
+    if hmm._guesses_remaining < 6:
+      bodyPartsHead = " O "
+    if hmm._guesses_remaining == 4:
+      bodyPartsTorso = " | "
+    if hmm._guesses_remaining == 3:  
+      bodyPartsTorso = "/| "
+    if hmm._guesses_remaining <= 2:
+      bodyPartsTorso = "/|\\"
+    if hmm._guesses_remaining == 1:
+      bodyPartsLegs = "/  "
+    if hmm._guesses_remaining == 0:
+      bodyPartsLegs = "/ \\"
+
+    print(f"{msg}")
+    print()
+    print(f"  +-----+     Wrong Guesses")
+    print(f"  |/    !     -------------")
+    print(f"  |    {bodyPartsHead}    {wGuesses}") 
+    print(f"  |    {bodyPartsTorso}  ")
+    print(f"  |    {bodyPartsLegs}   ")
+    print(f"  |                      ")  
+    print(f" /|\      {pWord}        ")        
+    print(f"/_|_\                    ")     
+
 
 ap = AnswerListProvider()
-hmm = HangmanModel(ap)
+hmm = HangmanModel()
 hm_UI = HangmanUI()
 hm_UI.start(hmm)
 
