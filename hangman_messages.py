@@ -3,6 +3,7 @@ class Msgs:
     dblLeterErrMsg = "ONLY ONE letter allowed. Guess again: \n"
     lost = "\nSorry, YOU LOST!"
     won = "\nCONGRATULATIONS, YOU WON!"
+    y_or_n_only = "Please enter only the letters 'Y' or 'N' only"
 
     @staticmethod
     def getBanner(hm):
