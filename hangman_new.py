@@ -185,20 +185,16 @@ class HangmanModel:
 
     # 6
     def update_game_state(self, is_correct: bool, guess: str) -> None:
-        message: str
+        message = ""
         if is_correct:
             wg = self.answer_response.get_word_group()
             for idx in range(len(wg)):
                 if wg[idx] == guess:
                     self._answer_guess[idx] = guess
-            message = "Correct! Good Guess!"
         else:
             self._guesses_remaining -= 1
             self._wrong_guesses.append(guess)
-            message = "Sorry, the letter '" + guess + "' is a wrong guess! Try again!\n"
-            message = (
-                "\n You have " + str(self._guesses_remaining) + " guesses remaining!\n"
-            )
+            message = str(self._guesses_remaining) + " guesses remaining!"
         return message
 
     def was_search_successful(self, searchTerm: str) -> bool:
@@ -265,12 +261,25 @@ class HangmanModel:
 
 
 class HangmanUI:
+    def showGameGreeting(self):
+        # Clearing the Screen
+        os.system("clear")
+        myText = """
+
+        ==============================================
+        =====     Welcome to Flak's Hangman!     =====
+        ==============================================
+
+        """
+        print(myText)
+
     def init_new_game(self) -> None:
         hmm._answer_guess = hmm.get_init_answer_guess()
         hmm._guesses_remaining = 6
         hmm._wrong_guesses = []
 
     def start(self, hmm: HangmanModel, debug: bool) -> None:
+        self.showGameGreeting()
         searchTerm = self.get_search_term_from_UI()
         hmm.answer_response = ap.get_answer_response(searchTerm)
         print(hmm.answer_response.response_msg)
@@ -294,12 +303,11 @@ class HangmanUI:
         self.init_new_game()
         statusMsg = "\n"
         isCorrect: bool
+
         my_guesses = "".join(hmm._answer_guess)
         answer = hmm.answer_response.get_word_group()
         final_guess_incorrrect = my_guesses != answer
-        my_guesses = "".join(hmm._answer_guess)
-        answer = hmm.answer_response.get_word_group()
-        final_guess_incorrrect = my_guesses != answer
+
         while final_guess_incorrrect and hmm._guesses_remaining > 0:
             self.draw(statusMsg)
 
@@ -310,15 +318,13 @@ class HangmanUI:
                 continue
 
             # 5
-            if not hmm.is_guess_in_answer(guess).bool:
-                isCorrect = False
-            else:
-                isCorrect = True
+            isCorrect = hmm.is_guess_in_answer(guess).bool
+
             statusMsg = hmm.is_guess_in_answer(guess).message
 
             # 6
             progressMsg = hmm.update_game_state(isCorrect, guess)
-            self.__report_progress(progressMsg)
+            statusMsg += progressMsg
 
             my_guesses = "".join(hmm._answer_guess)
             answer = hmm.answer_response.get_word_group()
@@ -402,10 +408,6 @@ class HangmanUI:
             if Utils.is_whole_word_alpha(searchTerm):
                 isString = True
         return searchTerm
-
-    def __report_progress(self, progressMsg: str) -> None:
-        print(progressMsg)
-        pass
 
     def draw(self, msg):
         pWord = self.format_answer_guess_for_UI()
