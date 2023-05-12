@@ -1,0 +1,83 @@
+<html>
+  <head>
+    <!-- <script src="./hangman.js"></script> -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+      .box {
+        border-style: solid;
+        border-radius: 5px;
+        border-color: black;
+        box-shadow: 5px 5px 5px;
+        width: 400px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding: 5px;
+      }
+      #output {
+        height: 200px;
+      }
+      .smaller-box {
+        height: 50px;
+      }
+      pre,
+      code,
+      body {
+        font-family: 'Courier New', Courier, monospace;
+      }
+      input {
+        display: inline;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="banner"
+      class="box"
+    ></div>
+    <div
+      id="output"
+      class="box"
+    ></div>
+    <div
+      id="error"
+      class="box"
+    >
+      &nbsp
+    </div>
+    <div class="smaller-box box">
+      <label
+        id="prompt"
+        for="input"
+      ></label>
+      <input
+        type="text"
+        id="input"
+        name="input"
+      />
+    </div>
+    <script>
+      //alert('hello?');
+      /*       let inp = document.getElementById('input');
+      inp.focus();
+
+      let i = setInterval(function () {
+        console.log('focusing');
+        inp.focus();
+      }, 200); */
+
+      let searchTerm = 'tree';
+      let url =
+        'https://api.datamuse.com/words?rel_rhy=' + searchTerm + '&max=1000';
+      //let answer_response = new AnswerResponse();
+      let message = '';
+      //let url = 'https://jsonplaceholder.typicode.com/users';
+
+      /*       axios
+        .get(url)
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => console.error(error)); */
+    </script>
+  </body>
+</html>

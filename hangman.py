@@ -173,7 +173,7 @@ class HangmanModel:
             for idx in range(len(wg)):
                 if wg[idx] == self._current_guess_letter:
                     self._answer_guess[idx] = self._current_guess_letter
-            # result.message = "Updated Guess-Answer: " + hm_UI.format_answer_guess_for_UI(self._answer_guess)
+            # result.message = "Updated Guess-Answer: " + hm_view.format_answer_guess_for_view(self._answer_guess)
             result.message = (
                 "The letter '"
                 + guess
@@ -260,7 +260,7 @@ class HangmanModel:
         answer_guess = hmm.get_init_answer_guess()
 
 
-class HangmanUI:
+class HangmanView:
     def showGameGreeting(self):
         # Clearing the Screen
         os.system("clear")
@@ -280,14 +280,14 @@ class HangmanUI:
 
     def start(self, hmm: HangmanModel, debug: bool) -> None:
         self.showGameGreeting()
-        searchTerm = self.get_search_term_from_UI()
+        searchTerm = self.get_search_term_from_view()
         hmm.answer_response = ap.get_answer_response(searchTerm)
         print(hmm.answer_response.response_msg)
         if not hmm.was_search_successful(searchTerm):
             self.start(hmm, debug)
         else:
             # search successful, let's narrow down the results
-            num_syllables_choice = self.get_num_syllables_choice_from_UI(
+            num_syllables_choice = self.get_num_syllables_choice_from_view(
                 hmm.answer_response.max_syllables
             )
             hmm.choose_answer_from_answer_list(searchTerm, num_syllables_choice)
@@ -312,7 +312,7 @@ class HangmanUI:
             self.draw(statusMsg)
 
             # 0
-            guess = self.__get_guess_from_UI()
+            guess = self.__get_guess_from_view()
             statusMsg = self.validate_guess(guess)
             if statusMsg != "":
                 continue
@@ -373,23 +373,23 @@ class HangmanUI:
             return hmm.is_guess_a_previous_wrong_guess(guess).message
         return ""
 
-    def __get_guess_from_UI(self):
+    def __get_guess_from_view(self):
         print()
         print()
         guess = input(Msgs.inputPhrase).lower()
         print()
         return guess
 
-    def format_answer_guess_for_UI(self):
-        asUI = []
+    def format_answer_guess_for_view(self):
+        asview = []
         for el in hmm._answer_guess:
             if el == "":
-                asUI.append("_")
+                asview.append("_")
             else:
-                asUI.append(el)
-        return " ".join(asUI)
+                asview.append(el)
+        return " ".join(asview)
 
-    def get_num_syllables_choice_from_UI(self, max_syllables) -> int:
+    def get_num_syllables_choice_from_view(self, max_syllables) -> int:
         num_syllable_choice = ""
         isInt = False
         while not isInt:
@@ -400,7 +400,7 @@ class HangmanUI:
                 isInt = True
         return int(num_syllable_choice)
 
-    def get_search_term_from_UI(self) -> str:
+    def get_search_term_from_view(self) -> str:
         searchTerm = ""
         isString = False
         while not isString:
@@ -410,7 +410,7 @@ class HangmanUI:
         return searchTerm
 
     def draw(self, msg):
-        pWord = self.format_answer_guess_for_UI()
+        pWord = self.format_answer_guess_for_view()
         wGuesses = " ".join(hmm._wrong_guesses)
         banner = Msgs.getBanner(hmm)
         footer = Msgs.getFooter(hmm)
@@ -521,7 +521,7 @@ class Utils:
 debug = True
 ap = AnswerListProvider()
 hmm = HangmanModel()
-hm_UI = HangmanUI()
-hm_UI.start(hmm, debug)
+hm_view = HangmanView()
+hm_view.start(hmm, debug)
 
 # %%
