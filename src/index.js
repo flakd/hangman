@@ -1,6 +1,7 @@
 //const axios = require('axios');
 //import * as axios from 'axios';
 import axios, * as others from 'axios';
+import Msgs from './hangman_messages.js';
 let temp = 0;
 
 function wtf() {
@@ -137,6 +138,16 @@ class Utils {
   }
 }
 
+class Result {
+  bool; //bool;
+  message; //str
+
+  constructor() {
+    this.bool = false;
+    this.message = '';
+  }
+}
+
 class AnswerResponse {
   _num_answer_words; //int;
   _answer_list; //list[str];
@@ -256,6 +267,8 @@ class HangmanView {
 
     this.output = document.getElementById(idOfOutput);
     if (!this.output) console.error('NO ELEMENT WITH ID of %s', idOfOutput);
+    this.output.readOnly = true;
+    this.output.disabled = true;
 
     this.banner = document.getElementById(idOfBanner);
     if (!this.banner) console.error('NO ELEMENT WITH ID of %s', idOfBanner);
@@ -268,18 +281,67 @@ class HangmanView {
 
     this.state = 'rhyme';
   }
+  getFormattedAnswerGuess() {
+    let result = [];
+    let formattedResult = '';
+    let ag = hmm.answer_response._answer_guess;
+    for (var letter of ag) {
+      if (letter === '') result.push('_');
+      else result.push(letter);
+    }
+    formattedResult = result.join(' ');
+    return formattedResult;
+  }
+  getHangmanDrawing(msg) {
+    let pWord = this.getFormattedAnswerGuess();
+    let wGuesses = hmm._wrong_guesses.join(' ');
+    let banner = Msgs.getBanner(hmm);
+    let footer = Msgs.getFooter(hmm);
+
+    this.printIT(banner + footer);
+    this.printIT('\n');
+
+    let bodyPartsHead = '   ';
+    let bodyPartsTorso = '   ';
+    let bodyPartsLegs = '   ';
+
+    if (hmm._guesses_remaining < 6) bodyPartsHead = ' O ';
+    if (hmm._guesses_remaining === 4) bodyPartsTorso = ' | ';
+    if (hmm._guesses_remaining === 3) bodyPartsTorso = '/| ';
+    if (hmm._guesses_remaining <= 2) bodyPartsTorso = '/|\\';
+    if (hmm._guesses_remaining === 1) bodyPartsLegs = '/  ';
+    if (hmm._guesses_remaining === 0) bodyPartsLegs = '/ \\';
+
+    let output = '';
+    output += `${msg}`;
+    output += '\n';
+    output += `  +-----+     Wrong Guesses\n`;
+    output += `  |/    !     -------------\n`;
+    output += `  |    ${bodyPartsHead}    ${wGuesses}\n`;
+    output += `  |    ${bodyPartsTorso}  \n`;
+    output += `  |    ${bodyPartsLegs}   \n`;
+    output += `  |                      \n`;
+    output += ` /|\\        ${pWord}        \n`;
+    output += `/_|_\\                    \n`;
+    return output;
+  }
+
   printIT(text, that) {
     if (this) {
       Utils.printInnerTextAsPre(this.output, text);
+      //this.output.value = this.output.value + text;
     } else {
       Utils.printInnerTextAsPre(that.output, text);
+      //that.output.value = this.output.value + text;
     }
   }
   printITC(text, that) {
     if (this) {
       Utils.printInnerTextAsPre_Clear(this.output, text);
+      //this.output.value = text;
     } else {
       Utils.printInnerTextAsPre_Clear(that.output, text);
+      //this.output.value = text;
     }
   }
   printIH(text, that) {
@@ -391,15 +453,22 @@ class HangmanView {
           if (that.getWordGroupFromSyllables(val, that)) {
             that.setPrompt('Please enter a one-letter guess: ');
             that.state = 'guessing';
+            that.initNewGame();
           }
         }
         if (that.state === 'guessing') {
-          let guess = that.getGuessFromView;
-        } else if (
-          hmm._guesses_remaining === 0 ||
-          hmm._answer_guess === hmm.answer_response.get_word_group()
-        ) {
-          that.printITC('At bottom of game loop, leaving game now');
+          let guess = val;
+          let result = hmm.is_guess_in_answer(guess);
+          hmm.update_game_state(result.bool, guess);
+          //that.printITC(result.message);
+          that.printITC(that.getHangmanDrawing(result.message));
+
+          let gr = hmm._guesses_remaining;
+          let ag = hmm.answer_response._answer_guess;
+          let wg = hmm.answer_response.get_word_group();
+          if (gr === 0 || ag === wg) {
+            that.printITC('At bottom of game loop, leaving game now');
+          }
         }
         event.target.value = '';
       }
@@ -465,7 +534,7 @@ class HangmanView {
       that.printIT('\n' + hmm.answer_response.response_msg);
       // debugging
       if (debug) hmm.answer_response.set_word_group('test');
-      that.printIT(hmm.answer_response.get_word_group());
+      that.printIT(wg);
       /////////
       return Utils.is_whole_word_alpha(wg);
     }
@@ -482,13 +551,51 @@ class HangmanModel {
   _wrong_guesses; //list[str]
 
   get_init_answer_guess() {
-    this._answer_guess = [];
+    this.answer_response._answer_guess = [];
     for (var letter of hmm.answer_response.get_word_group()) {
-      this._answer_guess.push('');
+      this.answer_response._answer_guess.push('');
     }
-    return this._answer_guess;
+    return this.answer_response._answer_guess;
   }
-
+  is_guess_in_answer(guess) {
+    let result = new Result();
+    result.bool = false;
+    this._current_guess_letter = guess;
+    result.bool = this.answer_response._answer_word_group.includes(guess);
+    if (result.bool) {
+      let wg = hmm.answer_response._answer_word_group;
+      for (var idx in wg) {
+        if (wg[idx] === guess) {
+          this._answer_guess[idx] = guess;
+          //result.message = "Updated Guess-Answer: " + hm_view.format_answer_guess_for_view(self._answer_guess)
+        }
+      }
+      result.message =
+        "The letter '" +
+        guess +
+        "', is correct! Good Guess! \nWhat will you guess next?\n";
+    } else {
+      result.message = 'Sorry, that guess is wrong!\n';
+    }
+    return result;
+  }
+  //6
+  update_game_state(is_correct, guess) {
+    let message = '';
+    if (is_correct) {
+      let wg = this.answer_response.get_word_group();
+      for (var idx in wg) {
+        if (wg[idx] == guess) {
+          this._answer_guess[idx] = guess;
+        }
+      }
+    } else {
+      this._guesses_remaining -= 1;
+      this._wrong_guesses.push(guess);
+      message = this._guesses_remaining + ' guesses remaining!';
+    }
+    return message;
+  }
   was_search_successful(searchTerm) {
     let alist = this.answer_response._answer_list;
     let num_answers = alist.length;
@@ -548,11 +655,11 @@ class HangmanModel {
     let message =
       'There are ' +
       answers_to_choose_from.length +
-      ' answer(s) to guess with ' +
+      ' answer(s) to guess with\n ' +
       num_syllables_choice +
-      ' syllables that rhyme with ' +
+      " syllables that rhyme with '" +
       searchTerm +
-      ". I'll randomly select one for you";
+      "'.\n I'll randomly select one for you";
     hmm.answer_response.response_msg = message;
     hmm._answer_guess = hmm.get_init_answer_guess();
   }
