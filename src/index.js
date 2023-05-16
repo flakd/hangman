@@ -1,15 +1,4 @@
-//const axios = require('axios');
-//import * as axios from 'axios';
 import axios, * as others from 'axios';
-import Msgs from './hangman_messages.js';
-let temp = 0;
-
-function wtf() {
-  document.write('testing');
-}
-//alert('hi');
-wtf();
-wtf();
 
 class Utils {
   static alpha_dict = Utils.setupDict();
@@ -111,7 +100,7 @@ class Utils {
     );
   }
   static is_string_an_int_between(word, firstNumStr, secondNumStr) {
-    if (!secondNumStr) secondNumStr = hmm.answer_response.max_syllables;
+    //if (!secondNumStr) secondNumStr = hmm.answer_response.max_syllables;
     let is_between = false;
     if (Utils.isNumeric(word)) {
       if (parseInt(word) >= firstNumStr && parseInt(word) <= secondNumStr) {
@@ -213,7 +202,7 @@ class AnswerListProvider {
       return false;
     }
   }
-  get_answer_response(searchTerm) {
+  getResponse(searchTerm) {
     //searchTerm = 'tree';
     let headers = {
       'User-Agent':
@@ -229,13 +218,14 @@ class AnswerListProvider {
       }
       numLoops++;
     }
-    hmm.answer_response = new AnswerResponse();
+    /*     hmm.answer_response = new AnswerResponse();
     hmm.answer_response.response_msg = 'server request OK';
+ */
     console.log('axios loaded');
     let test;
     return axios.get(url).catch((error) => {
-      hmm.answer_response.response_msg = error;
-      console.error(hmm.answer_response.response_msg);
+      //hmm.answer_response.response_msg = error;
+      //console.error(hmm.answer_response.response_msg);
     });
     /*
         except requests.exceptions.HTTPError as errh:
@@ -278,395 +268,196 @@ class HangmanView {
 
     this.error = document.getElementById(idOfError);
     if (!this.error) console.error('NO ELEMENT WITH ID of %s', idOfError);
-
-    this.state = 'rhyme';
   }
-  getFormattedAnswerGuess() {
-    let result = [];
-    let formattedResult = '';
-    let ag = hmm.answer_response._answer_guess;
-    for (var letter of ag) {
-      if (letter === '') result.push('_');
-      else result.push(letter);
-    }
-    formattedResult = result.join(' ');
-    return formattedResult;
-  }
-  getHangmanDrawing(msg) {
-    let pWord = this.getFormattedAnswerGuess();
-    let wGuesses = hmm._wrong_guesses.join(' ');
-    let banner = Msgs.getBanner(hmm);
-    let footer = Msgs.getFooter(hmm);
-
-    this.printIT(banner + footer);
-    this.printIT('\n');
-
-    let bodyPartsHead = '   ';
-    let bodyPartsTorso = '   ';
-    let bodyPartsLegs = '   ';
-
-    if (hmm._guesses_remaining < 6) bodyPartsHead = ' O ';
-    if (hmm._guesses_remaining === 4) bodyPartsTorso = ' | ';
-    if (hmm._guesses_remaining === 3) bodyPartsTorso = '/| ';
-    if (hmm._guesses_remaining <= 2) bodyPartsTorso = '/|\\';
-    if (hmm._guesses_remaining === 1) bodyPartsLegs = '/  ';
-    if (hmm._guesses_remaining === 0) bodyPartsLegs = '/ \\';
-
-    let output = '';
-    output += `${msg}`;
-    output += '\n';
-    output += `  +-----+     Wrong Guesses\n`;
-    output += `  |/    !     -------------\n`;
-    output += `  |    ${bodyPartsHead}    ${wGuesses}\n`;
-    output += `  |    ${bodyPartsTorso}  \n`;
-    output += `  |    ${bodyPartsLegs}   \n`;
-    output += `  |                      \n`;
-    output += ` /|\\        ${pWord}        \n`;
-    output += `/_|_\\                    \n`;
-    return output;
-  }
-
-  printIT(text, that) {
-    if (this) {
-      Utils.printInnerTextAsPre(this.output, text);
-      //this.output.value = this.output.value + text;
-    } else {
-      Utils.printInnerTextAsPre(that.output, text);
-      //that.output.value = this.output.value + text;
-    }
-  }
-  printITC(text, that) {
-    if (this) {
-      Utils.printInnerTextAsPre_Clear(this.output, text);
-      //this.output.value = text;
-    } else {
-      Utils.printInnerTextAsPre_Clear(that.output, text);
-      //this.output.value = text;
-    }
-  }
-  printIH(text, that) {
-    if (this) {
-      Utils.printInnerHTMLAsPre(this.output, text);
-    } else {
-      Utils.printInnerHTMLAsPre(that.output, text);
-    }
-  }
-  printIHC(text, that) {
-    if (this) {
-      Utils.printInnerHTMLAsPre_Clear(this.output, text);
-    } else {
-      Utils.printInnerHTMLAsPre_Clear(that.output, text);
-    }
-  }
-  setPrompt(text) {
-    Utils.printInnerHTMLAsPre_Clear(this.prompt, text);
-  }
-  setBanner(text) {
-    Utils.printInnerHTMLAsPre_Clear(this.banner, text);
-  }
-  setError(text) {
-    Utils.printInnerHTMLAsPre_Clear(this.error, text);
-  }
-  showGameGreeting() {
-    //Clearing the Screen;
-    //os.system('clear');
-    let myText =
-      '========================================\n' +
-      '====' +
-      Utils.nbsp(3) +
-      "Welcome to Flak's Hangman!" +
-      Utils.nbsp(3) +
-      '====\n' +
-      '========================================\n';
-    this.setBanner(myText);
-  }
-
-  start(hmm, debug) {
-    this.showGameGreeting();
-    this.setPrompt('Enter Rhyme: ');
-
-    let that = this;
-    this.input.addEventListener('keydown', async function (event) {
-      let val = event.target.value;
-      let answerResponse;
-      if (event.key === 'Enter') {
-        //that.main_game_loop(val, that, hmm, debug);
-        let answerResponse = new AnswerResponse();
-        if (that.state === 'rhyme') {
-          //let ok = await that.getAnswerListFromRhyme(val, answerResponse, that).was_successful;
-
-          //getAnswerListFromRhyme(val, answerResponse, that) {
-          if (Utils.is_whole_word_alpha(val)) {
-            let answerList = [];
-            let temp_list = [];
-            try {
-              let response = await ap.get_answer_response(val);
-              console.log(response.data);
-              for (var answer of response.data) {
-                if (answer.score) {
-                  if (answer.score > 100) {
-                    temp_list.push(answer);
-                  }
-                }
-              }
-              console.log(temp_list);
-              let answer_list = [];
-              for (var wordGroup of temp_list) {
-                answer_list.push(wordGroup);
-              }
-              hmm.answer_response = answerResponse;
-              hmm.answer_response._answer_list = answer_list;
-              answerList = hmm.answer_response._answer_list;
-              console.log(answerList);
-              //that.printIH(JSON.stringify(al, null, 2));
-              if (!hmm.was_search_successful(val)) {
-                that.start(hmm, debug);
-              }
-              hmm.searchTerm = val;
-            } catch (error) {
-              console.error(error);
-              hmm.answer_response.response_msg = error;
-            }
-            if (!answerList && answerList.length === 0) {
-              hmm.answer_response.was_successful = false;
-              hmm.answer_response.response_msg =
-                "can't find anything that rhymes with '" + val + "'!";
-            }
-            that.state = 'syllables';
-            hmm.answer_response.was_successful = true;
-          } else {
-            hmm.answer_response.response_msg =
-              'You entered non-alpha characters.  Please enter a real word';
-          }
-          //return hmm.answer_response;
-          //}
-
-          let ok = hmm.answer_response.was_successful;
-          if (ok) {
-            that.setPrompt('num syllables: ');
-            that.state = 'syllables';
-          } else {
-            that.setError(hmm.answer_response.response_msg);
-          }
-        }
-        if (that.state === 'syllables') {
-          if (that.getWordGroupFromSyllables(val, that)) {
-            that.setPrompt('Please enter a one-letter guess: ');
-            that.state = 'guessing';
-            that.initNewGame();
-          }
-        }
-        if (that.state === 'guessing') {
-          let guess = val;
-          let result = hmm.is_guess_in_answer(guess);
-          hmm.update_game_state(result.bool, guess);
-          //that.printITC(result.message);
-          that.printITC(that.getHangmanDrawing(result.message));
-
-          let gr = hmm._guesses_remaining;
-          let ag = hmm.answer_response._answer_guess;
-          let wg = hmm.answer_response.get_word_group();
-          if (gr === 0 || ag === wg) {
-            that.printITC('At bottom of game loop, leaving game now');
-          }
-        }
-        event.target.value = '';
-      }
-    });
-  }
-  initNewGame() {
-    hmm._answer_guess = hmm.get_init_answer_guess();
-    hmm._guesses_remaining = 6;
-    hmm._wrong_guesses = [];
-  }
-  getAnswerListFromRhyme(val, answerResponse, that) {
-    if (Utils.is_whole_word_alpha(val)) {
-      let answerList = [];
-      let temp_list = [];
-      try {
-        let response = ap.get_answer_response(val);
-        console.log(response.data);
-        for (var answer of response.data) {
-          if (answer.score) {
-            if (answer.score > 100) {
-              temp_list.push(answer);
-            }
-          }
-        }
-        console.log(temp_list);
-        let answer_list = [];
-        for (var wordGroup of temp_list) {
-          answer_list.push(wordGroup);
-        }
-        hmm.answer_response = answerResponse;
-        hmm.answer_response._answer_list = answer_list;
-        answerList = hmm.answer_response._answer_list;
-        console.log(answerList);
-        //that.printIH(JSON.stringify(al, null, 2));
-        if (!hmm.was_search_successful(val)) {
-          that.start(hmm, debug);
-        }
-        hmm.searchTerm = val;
-      } catch (error) {
-        console.error(error);
-        hmm.answer_response.response_msg = error;
-      }
-      if (!answerList && answerList.length === 0) {
-        hmm.answer_response.was_successful = false;
-        hmm.answer_response.response_msg =
-          "can't find anything that rhymes with '" + val + "'!";
-      }
-      this.state = 'syllables';
-      hmm.answer_response.was_successful = true;
-    } else {
-      hmm.answer_response.response_msg =
-        'You entered non-alpha characters.  Please enter a real word';
-    }
-    return hmm.answer_response;
-  }
-  getWordGroupFromSyllables(val, that) {
-    let num_syllables_choice;
-    if (Utils.is_string_an_int_between(val, 1)) {
-      // search successful, let's narrow down the results
-      num_syllables_choice = val;
-      hmm.choose_answer_from_answer_list(hmm.searchTerm, num_syllables_choice);
-      let wg = hmm.answer_response.get_word_group();
-      that.printIT('\n' + hmm.answer_response.response_msg);
-      // debugging
-      if (debug) hmm.answer_response.set_word_group('test');
-      that.printIT(wg);
-      /////////
-      return Utils.is_whole_word_alpha(wg);
-    }
-  }
-  async main_game_loop(val, that, hmm) {}
 }
 
-class HangmanModel {
-  answer_response; //AnswerResponse
-  _current_guess_letter; //str
-  _answer_provider; //AnswerListProvider
-  _guesses_remaining; //int
-  _answer_guess; //list[str]
-  _wrong_guesses; //list[str]
-
-  get_init_answer_guess() {
-    this.answer_response._answer_guess = [];
-    for (var letter of hmm.answer_response.get_word_group()) {
-      this.answer_response._answer_guess.push('');
-    }
-    return this.answer_response._answer_guess;
+function keydown_handler(event) {
+  //if (event.keyCode === 13) {
+  let input;
+  if (event.key === 'Enter') {
+    input = event.target.value;
+    event.target.value = '';
+    enterKeyHandler(input);
   }
-  is_guess_in_answer(guess) {
-    let result = new Result();
-    result.bool = false;
-    this._current_guess_letter = guess;
-    result.bool = this.answer_response._answer_word_group.includes(guess);
-    if (result.bool) {
-      let wg = hmm.answer_response._answer_word_group;
-      for (var idx in wg) {
-        if (wg[idx] === guess) {
-          this._answer_guess[idx] = guess;
-          //result.message = "Updated Guess-Answer: " + hm_view.format_answer_guess_for_view(self._answer_guess)
-        }
-      }
-      result.message =
-        "The letter '" +
-        guess +
-        "', is correct! Good Guess! \nWhat will you guess next?\n";
-    } else {
-      result.message = 'Sorry, that guess is wrong!\n';
-    }
-    return result;
+}
+
+function enterKeyHandler(input) {
+  if (state === 'rhyme') {
+    rhymeHandler(input);
   }
-  //6
-  update_game_state(is_correct, guess) {
-    let message = '';
-    if (is_correct) {
-      let wg = this.answer_response.get_word_group();
-      for (var idx in wg) {
-        if (wg[idx] == guess) {
-          this._answer_guess[idx] = guess;
-        }
-      }
-    } else {
-      this._guesses_remaining -= 1;
-      this._wrong_guesses.push(guess);
-      message = this._guesses_remaining + ' guesses remaining!';
-    }
-    return message;
+  //console.log(mainResponse.data);
+  if (state === 'syllables') {
+    syllablesHandler(input);
   }
-  was_search_successful(searchTerm) {
-    let alist = this.answer_response._answer_list;
-    let num_answers = alist.length;
-    this.answer_response.num_answers = num_answers;
-    if (num_answers === 0) {
-      this.answer_response.was_successful = false;
-      let message =
-        "Sorry I couldn't find any words that matched what you entered (" +
-        searchTerm +
-        ')';
-      return false;
-    } else {
-      this.answer_response.was_successful = true;
-      // max_syllables = max(answer_list, key=lambda mx: mx['numSyllables'])
-
-      //  we want to get the range of syllables in these answer words.
-      //  so we need the max number of syllables from whichever word
-      //  has the most syllables. but we don't know which word that is.
-      //
-      //  so we will start by building an array of all the num syllables
-      //  of all the words, then take the max() of that array.  Then 1 to
-      //  this number is our range of all possible number of syllables
-      let all_num_syllables = [];
-      for (var answer of alist) {
-        all_num_syllables.push(answer['numSyllables']);
-      }
-      console.log(all_num_syllables);
-      this.answer_response.max_syllables = Math.max(...all_num_syllables);
-
-      //  now we want to sort/filter each word by the num syllables.  so
-      //  we create a dict of string arrays of all possible num syllables
-      //  (e.g. "1", "2", "3", "4", etc.).
-      let numSylDict = {};
-
-      let max = this.answer_response.max_syllables;
-      for (var num_syllables = 0; num_syllables < max; num_syllables++) {
-        console.log(num_syllables);
-        numSylDict[num_syllables + 1] = [];
-      }
-
-      //  Now, we iterate over all possible ANSWER RESPONSES and place ONLY
-      //  the WORDthem in the appropriate dict slot/appending them to the
-      //  array in that slot
-      for (var answer of alist) {
-        numSylDict[answer['numSyllables']].push(answer['word']);
-      }
-      this.answer_response.num_syllables_dict = numSylDict;
-      return true;
-    }
+  if (state === 'guess') {
+    mainGameLoop(input, gMainResponse.data);
   }
-  choose_answer_from_answer_list(searchTerm, num_syllables_choice) {
-    this.answer_response.num_syllables = num_syllables_choice;
-    let answers_to_choose_from =
-      this.answer_response.num_syllables_dict[num_syllables_choice];
-    let word_group = Utils.choose(answers_to_choose_from);
-    hmm.answer_response.set_word_group(word_group);
-    let message =
-      'There are ' +
-      answers_to_choose_from.length +
-      ' answer(s) to guess with\n ' +
-      num_syllables_choice +
-      " syllables that rhyme with '" +
-      searchTerm +
-      "'.\n I'll randomly select one for you";
-    hmm.answer_response.response_msg = message;
-    hmm._answer_guess = hmm.get_init_answer_guess();
+  if (state === 'won') {
+    wonHandler(input);
+  }
+  if (state === 'lost') {
+    lostHandler(input);
+  }
+}
+
+function wonHandler(input) {
+  setOutput('You Won!  Should we play again?');
+  shouldPlayAgain(input);
+}
+function lostHandler(input) {
+  setOutput('You Lost!  Should we play again?');
+}
+function shouldPlayAgain(input) {
+  if (input === 'y') {
+    setPrompt('Enter a rhyming word: ');
+    setOutput('');
+  } else if (input === 'n')
+    setOutput(
+      "Sorry you won't be playing again.\n Have a great day!  Bye now.\n"
+    );
+}
+function syllablesHandler(input) {
+  let numSyl = parseInt(input);
+  let sylArrays = getMainRespAsSylArraysObject();
+  let sylChoiceArray = trimListByNumSyl(sylArrays, numSyl);
+  gChoice = Utils.choose(sylChoiceArray);
+  console.log(gChoice);
+  for (var letter of gChoice) {
+    if (letter === ' ') gFullGuess.push(' ');
+    else gFullGuess.push('_');
+  }
+  addOutputLn('answer: ' + gChoice);
+  state = 'guess';
+  setPrompt('Guess a letter: ');
+}
+
+async function rhymeHandler(input) {
+  let response = await ap.getResponse(input);
+  console.log(response);
+  gMainResponse = response;
+  state = 'syllables';
+  setPrompt('syllables: ');
+}
+
+function getMainRespAsSylArraysObject() {
+  let allSylsArray = getAllSylsArray();
+  let sylChoicesArrays = getEmptySylChoicesArrayAsObject(allSylsArray);
+  return getSylChoicesArraysAsObject(sylChoicesArrays);
+  function getSylChoicesArraysAsObject(sylChoicesArraysAsObjects) {
+    for (var wordGroup of gMainResponse.data) {
+      sylChoicesArraysAsObjects[wordGroup.numSyllables].push(wordGroup.word);
+    }
+    return sylChoicesArraysAsObjects;
+  }
+  function getEmptySylChoicesArrayAsObject(allSylsArray) {
+    let sylChoicesArrays = {};
+    let max = Math.max(...allSylsArray);
+    for (var i = 1; i < max + 1; i++) {
+      sylChoicesArrays[i] = [];
+    }
+    return sylChoicesArrays;
+  }
+  function getAllSylsArray() {
+    let allSylsArray = [];
+    for (var wordGroup of gMainResponse.data) {
+      allSylsArray.push(wordGroup.numSyllables);
+    }
+    return allSylsArray;
+  }
+}
+
+function trimListByNumSyl(sylArrays, numSyl) {
+  return sylArrays[numSyl];
+}
+
+function setPrompt(text) {
+  hm_view.prompt.innerHTML = text;
+}
+function setOutput(text) {
+  hm_view.output.innerHTML = text + '\n';
+}
+function addOutput(text) {
+  hm_view.output.innerHTML += text + '\n';
+}
+function addOutputLn(text) {
+  hm_view.output.innerHTML += text + '\n';
+}
+function getHangmanDrawing(pWord, msg) {
+  //let pWord = this.getFormattedAnswerGuess();
+  //let wGuesses = wrong_guesses.join(' ');
+  let wGuesses = '';
+  //let banner = Msgs.getBanner(hmm);
+  //let footer = Msgs.getFooter(hmm);
+
+  //this.printIT(banner + footer);
+  //this.printIT('\n');
+
+  let bodyPartsHead = '   ';
+  let bodyPartsTorso = '   ';
+  let bodyPartsLegs = '   ';
+
+  if (gGuessesRemaining < 6) bodyPartsHead = ' O ';
+  if (gGuessesRemaining === 4) bodyPartsTorso = ' | ';
+  if (gGuessesRemaining === 3) bodyPartsTorso = '/| ';
+  if (gGuessesRemaining <= 2) bodyPartsTorso = '/|\\';
+  if (gGuessesRemaining === 1) bodyPartsLegs = '/  ';
+  if (gGuessesRemaining === 0) bodyPartsLegs = '/ \\';
+
+  let output = '';
+  output += `${msg}`;
+  output += '\n';
+  output += `  +-----+     Wrong Guesses\n`;
+  output += `  |/    !     -------------\n`;
+  output += `  |    ${bodyPartsHead}    ${wGuesses}\n`;
+  output += `  |    ${bodyPartsTorso}  \n`;
+  output += `  |    ${bodyPartsLegs}   \n`;
+  output += `  |                      \n`;
+  output += ` /|\\        ${pWord}        \n`;
+  output += `/_|_\\                    \n`;
+  return output;
+}
+
+function mainGameLoop(guess, response) {
+  if (Utils.isNumeric(guess)) return;
+  if (!(gFullGuess.join('') === gChoice || gGuessesRemaining === 0)) {
+    let isCorrectGuess = false;
+    for (var idx in gChoice) {
+      if (guess === gChoice[idx]) {
+        gFullGuess[idx] = guess;
+        isCorrectGuess = true;
+      }
+    }
+    if (!isCorrectGuess) {
+      addOutputLn("'" + guess + "' is wrong");
+      gGuessesRemaining -= 1;
+    }
+    let output = getHangmanDrawing(gFullGuess.join(' '));
+    //addOutputLn('guess: ' + guess);
+    //addOutputLn('Full Guess: ' + gFullGuess.join(' '));
+    setOutput(output);
+    state = 'guess';
+    setPrompt('Guess a letter: ');
+  } else {
+    if (gFullGuess.join('') === gChoice) {
+      state = 'won';
+      return;
+    }
+    if (gGuessesRemaining === 0) {
+      state = 'lost';
+      return;
+    }
   }
 }
 
 const debug = true;
 const ap = new AnswerListProvider();
-const hmm = new HangmanModel();
+//const hmm = new HangmanModel();
 const hm_view = new HangmanView('input', 'output', 'banner', 'prompt', 'error');
-hm_view.start(hmm, debug);
+//hm_view.start(hmm, debug);
+let state = 'rhyme';
+hm_view.prompt.innerHTML = 'Enter a rhyming word: ';
+let gMainResponse;
+let gFullGuess = [];
+let gChoice = '';
+let gGuessesRemaining = 6;
+hm_view.input.addEventListener('keydown', keydown_handler);
