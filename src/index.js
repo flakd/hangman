@@ -275,7 +275,7 @@ function keydown_handler(event) {
   //if (event.keyCode === 13) {
   let input;
   if (event.key === 'Enter') {
-    input = event.target.value;
+    input = event.target.value.toLowerCase();
     event.target.value = '';
     enterKeyHandler(input);
   }
@@ -370,6 +370,9 @@ function trimListByNumSyl(sylArrays, numSyl) {
   return sylArrays[numSyl];
 }
 
+function setError(text) {
+  hm_view.error.innerHTML = text;
+}
 function setPrompt(text) {
   hm_view.prompt.innerHTML = text;
 }
@@ -384,8 +387,7 @@ function addOutputLn(text) {
 }
 function getHangmanDrawing(pWord, msg) {
   //let pWord = this.getFormattedAnswerGuess();
-  //let wGuesses = wrong_guesses.join(' ');
-  let wGuesses = '';
+  let wGuesses = gWrongGuesses.join(' ');
   //let banner = Msgs.getBanner(hmm);
   //let footer = Msgs.getFooter(hmm);
 
@@ -418,7 +420,16 @@ function getHangmanDrawing(pWord, msg) {
 }
 
 function mainGameLoop(guess, response) {
-  if (Utils.isNumeric(guess)) return;
+  let result;
+  if (Utils.isNumeric(guess)) {
+    //setError('That is a number.  Please enter one Alpha/Letter');
+    return;
+  }
+
+  if (!Utils.is_whole_word_alpha(guess)) {
+    //setError('Only one Alpha/Letter is allowed');
+    return;
+  }
   if (!(gFullGuess.join('') === gChoice || gGuessesRemaining === 0)) {
     let isCorrectGuess = false;
     for (var idx in gChoice) {
@@ -429,6 +440,7 @@ function mainGameLoop(guess, response) {
     }
     if (!isCorrectGuess) {
       addOutputLn("'" + guess + "' is wrong");
+      gWrongGuesses.push(guess);
       gGuessesRemaining -= 1;
     }
     let output = getHangmanDrawing(gFullGuess.join(' '));
@@ -460,4 +472,5 @@ let gMainResponse;
 let gFullGuess = [];
 let gChoice = '';
 let gGuessesRemaining = 6;
+let gWrongGuesses = [];
 hm_view.input.addEventListener('keydown', keydown_handler);
