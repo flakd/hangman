@@ -8,26 +8,36 @@
         border-radius: 5px;
         border-color: black;
         box-shadow: 5px 5px 5px;
-        width: 400px;
+        width: 900px;
         margin-top: 20px;
         margin-bottom: 20px;
         padding: 5px;
       }
       #output {
-        height: 300px;
+        height: 700px;
         scroll-behavior: auto;
         overflow: scroll;
       }
       .smaller-box {
-        height: 50px;
+        height: 800px;
       }
       pre,
       code,
       body {
         font-family: 'Courier New', Courier, monospace;
+        font-weight: 900;
       }
-      input {
+      #banner, .smaller-box {
+        font-size: 60px;
+      }
+      #output{
+        font-size: 50px;
+      }
+      #input {
         display: inline;
+        font-size:60px; 
+        width: 425px; 
+        height:100px;        
       }
     </style>
   </head>
@@ -40,11 +50,11 @@
       id="output"
       class="box"
     ></pre>
-    <div
+<!--     <div
       id="error"
       class="box"
-    >
-      &nbsp
+    > 
+      &nbsp-->
     </div>
     <div class="smaller-box box">
       <label
@@ -56,6 +66,7 @@
         id="input"
         name="input"
       />
+      <div id="root"></div>
     </div>
     <script>
       //alert('hello?');

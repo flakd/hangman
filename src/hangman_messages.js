@@ -27,13 +27,9 @@ class Msgs {
 
   static getGameGreeting() {
     let myText =
-      '========================================\n' +
-      '====' +
-      Utils.nbsp(3) +
-      "Welcome to Flak's Hangman!" +
-      Utils.nbsp(3) +
-      '====\n' +
-      '========================================\n';
+      //'=========================\n' +
+      "==== Flak's Hangman! ====\n";
+    //'=========================\n';
     return myText;
   }
 
