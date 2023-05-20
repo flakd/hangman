@@ -1,0 +1,73 @@
+import {StatusBar} from 'expo-status-bar';
+import {useState} from 'react';
+//import { StyleSheet, Text, View } from 'react-native';
+import {StyleSheet, Text, View, Button, Image} from 'react-native';
+
+// Styles
+const styles = {
+  app: {
+    marginHorizontal: 'auto',
+    width: 400,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  item: {
+    flex: 1,
+    minWidth: 100,
+    maxWidth: 100,
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    // my visual styles; not important for grid
+    padding: 10,
+    backgroundColor: 'rgba(249, 180, 45, 0.25)',
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+};
+
+// RN Code
+const Item = ({item}) => {
+  return (
+    <View style={styles.item}>
+      {item.icon}
+      <Text>TESTING</Text>
+    </View>
+  );
+};
+
+export default function App() {
+  return (
+    <View style={styles.app}>
+      {itemData.map((item) => {
+        return <Item icon={item.icon} />;
+      })}
+      <Text>TESTING</Text>
+    </View>
+  );
+}
+
+// Sample Data
+const itemData = [
+  {
+    icon: (
+      <Image
+        style={{width: 50, height: 50}}
+        source={{
+          uri: 'https://icons.iconarchive.com/icons/limav/flat-gradient-social/256/Twitter-icon.png',
+        }}
+      />
+    ),
+  },
+  {
+    icon: (
+      <Image
+        style={{width: 50, height: 50}}
+        source={{
+          uri: 'https://icons.iconarchive.com/icons/designbolts/free-instagram/256/Active-Instagram-1-icon.png',
+        }}
+      />
+    ),
+  },
+];
