@@ -1,17 +1,25 @@
 import {StatusBar} from 'expo-status-bar';
 import React, {useState, useEffect} from 'react';
-//import { StyleSheet, Text, View } from 'react-native';
-import {StyleSheet, Text, View, Button} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  SafeAreaView,
+  TextInput,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet'; // <-- import stylesheet
-import MyButton2 from './MyButton2';
-
-import MyButton from './MyButton';
+import MyButton2 from './components/MyButton2';
+import MyButton from './components/MyButton';
 
 export default function App() {
   const [buttonsActive, setButtonsActive] = useState({});
   const [inputState, setInputState] = useState(true);
   const [test, setTest] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [gameState, setGameState] = useState('rhyme');
+  const [rhymeInput, setRhymeInput] = useState('');
+
   const [is_a_Disabled, setIs_a_Disabled] = useState(false);
   const [is_b_Disabled, setIs_b_Disabled] = useState(false);
   const [is_c_Disabled, setIs_c_Disabled] = useState(false);
@@ -109,10 +117,8 @@ export default function App() {
     setButtonsActive(kbMap);
     console.log(buttonsActive);
   };
-  const temp = 'hello world';
   const keysArray = Object.keys(buttonsActive);
   console.log(keysArray);
-  const temp3 = [];
   const keysAsJSX = keysArray.map((element) => (
     <MyButton
       key={element}
@@ -124,48 +130,126 @@ export default function App() {
       disabled={buttonsActive[element][2]}
     />
   ));
+  const onChangeText = (input) => {
+    let temp = 0;
+    setRhymeInput(input);
+    //alert(input);
+    if (input.includes('\n')) alert('we hit enter');
+  };
+  const onSubmitted = (event, text) => {
+    //console.log('submitted: input: ', event.target.value);
+    console.log('submitted: input: ', text);
+    //setRhymeInput('');
+  };
+  const onEndEditing = (event) => {
+    //console.log('submitted: input: ', event.target.value);
+    //console.log('submitted: input: ', event.text);
+    console.log(rhymeInput);
+    //setRhymeInput('');
+  };
+  const onChangeNumber = () => {};
+  const text = '';
+  const number = '0';
   return (
-    <View style={styles.container1}>
-      <View style={styles.container2}>
-        <Text>test again</Text>
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.container1}>
+        <View style={styles.container2}>
+          <Text>test again</Text>
+        </View>
+        {gameState === 'rhyme' ? (
+          <View style={styles.input_label}>
+            <Text style={styles.prompt}>Enter Rhyme: </Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={onChangeText}
+              //onSubmitEditing={(text) => onSubmitted(text)}
+              onEndEditing={(value) => onEndEditing(value)}
+              value={rhymeInput}
+            />
+          </View>
+        ) : null}
+        {gameState === 'syllables' ? (
+          <View style={styles.input_label}>
+            <Text style={styles.prompt}>Num Syllables? </Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={onChangeNumber}
+              value={number}
+              placeholder='useless placeholder'
+              keyboardType='numeric'
+            />
+          </View>
+        ) : null}
+        <View style={styles.keyboard}>
+          {/*         <MyButton
+            key='a'
+            id='a'
+            title='a'
+            test='a'
+            width='45'
+            onPress={(event) => clickHandler('a', event)}
+            disabled={is_a_Disabled}
+          /> */}
+          {keysAsJSX}
+          <StatusBar style='auto' />
+        </View>
       </View>
-      <View>
-        <Text>test again</Text>
-      </View>
-      <View style={styles.container3}>
-        {/*         <MyButton
-          key='a'
-          id='a'
-          title='a'
-          test='a'
-          width='45'
-          onPress={(event) => clickHandler('a', event)}
-          disabled={is_a_Disabled}
-        /> */}
-        {keysAsJSX}
-        <StatusBar style='auto' />
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+  },
+  input: {
+    height: 34,
+    width: 200,
+    margin: 0,
+    borderWidth: 1,
+    padding: 2,
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+  },
+  prompt: {
+    alignSelf: 'center',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+  },
   container1: {
     width: 370,
-    height: 700,
-    border: 'solid black 1px',
+    height: 730,
+    borderColor: 'black',
+    borderWidth: 2,
     //there was something here ??
     backgroundColor: 'red',
-    top: 50,
+    top: 0,
   },
   container2: {
-    height: 420,
+    borderColor: 'black',
+    borderWidth: 2,
+    height: 410,
     width: 200,
     border: 'solid black 1px',
     backgroundColor: 'beige',
   },
-  container3: {
-    height: 300,
+  input_label: {
+    flexDirection: 'row',
+    alignContent: 'center',
+    justifyContent: 'flex-start',
+    alignSelf: 'center',
+    borderColor: 'black',
+    borderWidth: 1,
+    paddingLeft: 5,
+    height: 35,
+    width: 360,
+    border: 'solid black 1px',
+    backgroundColor: 'orange',
+  },
+  keyboard: {
+    borderColor: 'black',
+    borderWidth: 1,
+    height: 305,
     border: 'solid black 1px',
     flex: 1,
     flexDirection: 'row',
