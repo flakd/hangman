@@ -129,7 +129,7 @@ class HangmanView {
   prompt;
   error;
   constructor(idOfInput, idOfOutput, idOfBanner, idOfPrompt, idOfError) {
-    this.input = document.getElementById(idOfInput);
+    /*     this.input = document.getElementById(idOfInput);
     if (!this.input) console.error('NO ELEMENT WITH ID of %s', idOfInput);
 
     this.output = document.getElementById(idOfOutput);
@@ -144,7 +144,7 @@ class HangmanView {
     if (!this.prompt) console.error('NO ELEMENT WITH ID of %s', idOfPrompt);
 
     this.error = document.getElementById(idOfError);
-    if (!this.error) console.error('NO ELEMENT WITH ID of %s', idOfError);
+    if (!this.error) console.error('NO ELEMENT WITH ID of %s', idOfError); */
   }
 }
 class HangmanModel {}
@@ -326,17 +326,11 @@ function initGame() {
 }
 export const ap = new AnswerListProvider();
 export const hmm = new HangmanModel();
-export const hm_view = new HangmanView(
-  'input',
-  'output',
-  'banner',
-  'prompt',
-  'error'
-);
+const hm_view = new HangmanView('input', 'output', 'banner', 'prompt', 'error');
 
-hm_view.banner.innerHTML = Msgs.getGameGreeting();
-hm_view.prompt.innerHTML = 'Enter rhyme:';
-hm_view.input.addEventListener('keydown', keydown_handler);
+//hm_view.banner.innerHTML = Msgs.getGameGreeting();
+//hm_view.prompt.innerHTML = 'Enter rhyme:';
+//hm_view.input.addEventListener('keydown', keydown_handler);
 initGame();
 
 //exports.ap = ap;
