@@ -59,69 +59,79 @@ class AnswerResponse {
   }
 }
 
-class AnswerListProvider {
-  __get_answer_list() {
-    let answerList = ['ardvark', 'baboon', 'cougar', 'dingo', 'door hinge'];
-    return answerList;
-  }
-
-  get_answer_from_list() {
-    let answer_list = this.__get_answer_list();
-    return Utils.choose(answer_list);
-  }
-
-  isAxiosLoaded() {
-    if (axios) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  getResponse(searchTerm) {
-    //searchTerm = 'tree';
-    let headers = {
-      'User-Agent':
-        'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0',
+export class AnswerListProvider {
+  constructor() {
+    this.__get_answer_list = function () {
+      let answerList = ['ardvark', 'baboon', 'cougar', 'dingo', 'door hinge'];
+      return answerList;
     };
-    let url =
-      'https://api.datamuse.com/' +
-      'words?' +
-      ('rel_rhy=' + searchTerm + '&') +
-      ('max=' + 1000 + '&'); //+
-    //('&v=' + 'enwiki' + '&');
-    let numLoops = 0;
-    while (!this.isAxiosLoaded()) {
-      if (numLoops > 100) {
-        hm_view.printIHC('There appears to be some sort of server problem');
+
+    this.get_answer_from_list = function () {
+      let answer_list = this.__get_answer_list();
+      return Utils.choose(answer_list);
+    };
+
+    this.isAxiosLoaded = function () {
+      if (axios) {
+        return true;
+      } else {
+        return false;
       }
-      numLoops++;
-    }
-    /*     hmm.answer_response = new AnswerResponse();
-    hmm.answer_response.response_msg = 'server request OK';
- */
-    console.log('axios loaded');
-    let test;
-    return axios.get(url).catch((error) => {
-      //hmm.answer_response.response_msg = error;
-      //console.error(hmm.answer_response.response_msg);
-    });
-    /*
-        except requests.exceptions.HTTPError as errh:
-            print("\n\nHttp Error:", errh, "\n\n")
-        except requests.exceptions.ConnectionError as errc:
-            // print ("\n\nError Connecting:",errc,"\n\n")
-            message = "\n\nThere's been an error connecting to the server.  Please try again in a few seconds."
-        except requests.exceptions.Timeout as errt:
-            print("\n\nTimeout Error:", errt, "\n\n")
-        except requests.exceptions.RequestException as err:
-            print("\n\nOops: Something Else", err, "\n\n") 
-        */
-    //  console.error(error);
-    //  message = error;
-    //});
+    };
+    this.getResponse = async function (searchTerm) {
+      //searchTerm = 'tree';
+      let headers = {
+        'User-Agent':
+          'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0',
+      };
+      let url =
+        'https://api.datamuse.com/' +
+        'words?' +
+        ('rel_rhy=' + searchTerm + '&') +
+        ('max=' + 1000 + '&'); //+
+
+      //('&v=' + 'enwiki' + '&');
+      let numLoops = 0;
+      while (!this.isAxiosLoaded()) {
+        if (numLoops > 100) {
+          hm_view.printIHC('There appears to be some sort of server problem');
+        }
+        numLoops++;
+      }
+      /*     hmm.answer_response = new AnswerResponse();
+      hmm.answer_response.response_msg = 'server request OK';
+   */
+      console.log('axios loaded');
+      let test;
+      return axios.get(url).catch((error) => {
+        //hmm.answer_response.response_msg = error;
+        //console.error(hmm.answer_response.response_msg);
+      });
+      /*
+          except requests.exceptions.HTTPError as errh:
+              print("\n\nHttp Error:", errh, "\n\n")
+          except requests.exceptions.ConnectionError as errc:
+              // print ("\n\nError Connecting:",errc,"\n\n")
+              message = "\n\nThere's been an error connecting to the server.  Please try again in a few seconds."
+          except requests.exceptions.Timeout as errt:
+              print("\n\nTimeout Error:", errt, "\n\n")
+          except requests.exceptions.RequestException as err:
+              print("\n\nOops: Something Else", err, "\n\n")
+          */
+      //  console.error(error);
+      //  message = error;
+      //});
+    };
   }
 }
 
+export function Cat() {
+  this.age = 0;
+  this.name = 'kitty';
+}
+/* module.exports = {
+  Cat: Cat,
+}; */
 class HangmanView {
   input; //HTMLInputElement;
   output; //HTMLDivElement
@@ -147,7 +157,7 @@ class HangmanView {
     if (!this.error) console.error('NO ELEMENT WITH ID of %s', idOfError); */
   }
 }
-class HangmanModel {}
+export class HangmanModel {}
 
 function keydown_handler(event) {
   //if (event.keyCode === 13) {
@@ -198,7 +208,7 @@ function shouldPlayAgain(input) {
       "Sorry you won't be playing again.\n Have a great day!  Bye now.\n"
     );
 }
-function syllablesHandler(input) {
+export function syllablesHandler(input) {
   let numSyl = parseInt(input);
   hmm.numSyllables = numSyl;
   if (input.trim() === '') return;
@@ -217,7 +227,7 @@ function syllablesHandler(input) {
   setPrompt('Guess a letter: ');
 }
 
-async function rhymeHandler(input) {
+export async function rhymeHandler(input, hmm) {
   if (input.trim() === '') return;
   if (Utils.isNumeric(input)) return;
   if (!Utils.is_whole_word_alpha(input)) return;
@@ -225,7 +235,7 @@ async function rhymeHandler(input) {
   console.log(response);
   hmm.mainResponse = response;
   hmm.state = 'syllables';
-  setPrompt('syllables: ');
+  //setPrompt('syllables: ');
 }
 
 function getMainRespAsSylArraysObject() {
@@ -315,23 +325,14 @@ export function mainGameLoop(guess) {
   }
   //}
 }
-function initGame() {
-  hmm.fullGuess = [];
-  hmm.choice = '';
-  hmm.guessesRemaining = 6;
-  hmm.wrongGuesses = [];
-  hmm.mainResponse = null;
-  hmm.numSyllables = 0;
-  hmm.state = 'rhyme';
-}
+
+//const hm_view = new HangmanView('input', 'output', 'banner', 'prompt', 'error');
 export const ap = new AnswerListProvider();
-export const hmm = new HangmanModel();
-const hm_view = new HangmanView('input', 'output', 'banner', 'prompt', 'error');
+export const _hmm = new HangmanModel();
 
 //hm_view.banner.innerHTML = Msgs.getGameGreeting();
 //hm_view.prompt.innerHTML = 'Enter rhyme:';
 //hm_view.input.addEventListener('keydown', keydown_handler);
-initGame();
 
 //exports.ap = ap;
 //exports.hmm = hmm;

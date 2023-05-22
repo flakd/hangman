@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     padding: 2,
     textAlign: 'left',
     alignSelf: 'flex-start',
+    backgroundColor: 'white',
   },
   prompt: {
     alignSelf: 'center',

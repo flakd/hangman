@@ -2,11 +2,22 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import TextFixedWidth from './TextFixedWidth';
 import Msgs from '../hangman_messages';
+import Rhyme from './Rhyme';
+import Syllables from './Syllables';
 
-const Output = ({children}) => {
+const Prompt = (props) => {
   return (
     <View style={styles.output}>
-      <TextFixedWidth>{children}</TextFixedWidth>
+      {props.gameState === 'rhyme' && (
+        <Rhyme
+          style={styles.input_label}
+          hmm={props.hmm}
+          changeGameState={props.changeGameState}
+        />
+      )}
+      {props.gameState === 'syllables' && (
+        <Syllables style={styles.input_label} />
+      )}
     </View>
   );
 };
@@ -23,4 +34,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Output;
+export default Prompt;

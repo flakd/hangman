@@ -7,28 +7,29 @@ class Msgs {
   won = '\nCONGRATULATIONS, YOU WON!';
   y_or_n_only = "Please enter only the letters 'Y' or 'N' only";
 
-  static getBanner(numTotalLetters, numUniqueLetters) {
-    let banner =
-      'Your answer has: \n' +
+  static getHeading(
+    numTotalLetters,
+    numUniqueLetters,
+    numAnswerWords,
+    numSyllables
+  ) {
+    let heading =
+      'ANSWER: ' +
       numTotalLetters +
       ' letters total (' +
       numUniqueLetters +
       ' Unique),\n';
-    return banner;
-  }
-
-  static getFooter(numAnswerWords, numSyllables) {
     let plural = 's';
     if (numAnswerWords === 1) plural = '';
-    let footer =
+    heading +=
       numAnswerWords + ' Word' + plural + ' & ' + numSyllables + ' Syllables.';
-    return footer;
+    return heading;
   }
 
   static getGameGreeting() {
     let myText =
       //'=========================\n' +
-      "==== Flak's Hangman! ====\n";
+      "=== Flak's Hangman! ===\n";
     //'=========================\n';
     return myText;
   }
@@ -45,11 +46,12 @@ class Msgs {
     let wGuesses = gWrongGuesses.join(' ');
     let numUnique = Utils.getNumUniqueLetters(gChoice);
     let numTotal = gChoice.length;
-    let banner = Msgs.getBanner(numTotal, numUnique);
+    //let banner = Msgs.getHeading(numTotal, numUnique);
     let numAnswerWords = gChoice.split(' ').length;
-    let footer = Msgs.getFooter(numAnswerWords, gNumSyllables);
+    //let footer = Msgs.getFooter(numAnswerWords, gNumSyllables);
 
-    let preMsg = banner + footer + '\n';
+    //let preMsg = banner + footer + '\n';
+    let preMsg = '';
     msg = preMsg + msg;
     //this.printIT('\n');
 
