@@ -2,8 +2,6 @@ import {StatusBar} from 'expo-status-bar';
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, SafeAreaView} from 'react-native';
 import MyButton from './components/MyButton';
-import Rhyme from './components/Rhyme';
-import Syllables from './components/Syllables';
 import Output from './components/Output';
 import {AnswerListProvider, HangmanModel, Cat, ap, hmm} from './hangman.js';
 //import {hm_view} from './hangman.js';

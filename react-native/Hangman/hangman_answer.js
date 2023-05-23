@@ -1,3 +1,5 @@
+import axios, * as others from 'axios';
+
 class Result {
   bool; //bool;
   message; //str

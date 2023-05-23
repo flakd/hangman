@@ -1,0 +1,77 @@
+import React, {useState, useRef} from 'react';
+import {StyleSheet, Text, View, TextInput} from 'react-native';
+import {handlers, sylFunctions} from '../hangman';
+
+const Syllables = (props) => {
+  const [syllablesInput, setSyllablesInput] = useState('');
+  const [isSyllablesValid, setIsSyllablesValid] = useState(true);
+  const hmm = props.hmm;
+  const ap = props.ap;
+
+  const inputSyllablesRef = useRef();
+
+  const onChangeText = (input) => {
+    setSyllablesInput(input);
+  };
+
+  const onSubmitted = (value) => {
+    console.log('value.nativeEvent.text: ', value.nativeEvent.text);
+    console.log(value.nativeEvent);
+    setSyllablesInput('');
+
+    console.log('submitted: input: ', syllablesInput);
+    if (handlers.isSyllablesValid(syllablesInput)) {
+      sylFunctions.parseSyllables(syllablesInput);
+      setIsSyllablesValid(true);
+      props.changeGameState('guess');
+    } else {
+      setIsSyllablesValid(false);
+      setSyllablesInput('');
+    }
+    console.log('hmm.mainResponse: ', hmm.mainResponse);
+    console.log('hmm.state: ', hmm.state);
+    return;
+  };
+  return (
+    <View style={styles.centeredView}>
+      <View style={styles.modalView}>
+        <Text style={styles.modalText}>Num Syllables? </Text>
+        <TextInput
+        placeholder='Enter Number of Syllables'
+
+            style={styles.input}
+          onChangeText={onChangeText}
+          onSubmitEditing={(value) => onSubmitted(value)}
+        value={syllablesInput}
+          blurOnSubmit={false}
+        ref={inputSyllablesRef}
+            keyboardType={isSyllables ? 'numeric' : 'default'}
+                    returnKeyType={isSyllables ? 'done' : 'default'}
+
+        />      
+      {!isSyllablesValid ? (
+        <Text style={{color: 'red'}}>INVALID: Can ONLY include numbers</Text>
+      ) : null}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  input: {
+    height: 34,
+    width: 200,
+    margin: 0,
+    borderWidth: 1,
+    padding: 2,
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+    backgroundColor: 'white',
+  },
+  prompt: {
+    alignSelf: 'center',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+  },
+});
+
+export default Syllables;

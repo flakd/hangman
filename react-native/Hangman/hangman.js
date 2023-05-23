@@ -1,70 +1,75 @@
-import axios, * as others from 'axios';
 import Msgs from './hangman_messages.js';
 import {AnswerListProvider} from './hangman_answer.js';
 import Utils from './utils.js';
 
 export class HangmanModel {}
 
-function wonHandler(input) {
-  setPrompt("You Won! Type 'Y' to play again!");
-  shouldPlayAgain(input);
-}
-function lostHandler(input) {
-  setPrompt("You Lost! Type 'Y' to play again!");
-  shouldPlayAgain(input);
-}
-function shouldPlayAgain(input) {
-  if (input === 'y') {
-    initGame();
-    hmm.state = 'rhyme';
-    setPrompt('Enter a rhyming word: ');
-    setOutput('');
-  } else if (input === 'n')
-    setOutput(
-      "Sorry you won't be playing again.\n Have a great day!  Bye now.\n"
+export const handlers = {
+  shouldPlayAgain: function (input) {
+    if (input === 'y') {
+      initGame();
+      hmm.state = 'rhyme';
+      setPrompt('Enter a rhyming word: ');
+      setOutput('');
+    } else if (input === 'n')
+      setOutput(
+        "Sorry you won't be playing again.\n Have a great day!  Bye now.\n"
+      );
+  },
+  wonHandler: function (input) {
+    setPrompt("You Won! Type 'Y' to play again!");
+    shouldPlayAgainHandler(input);
+  },
+  lostHandler: function (input) {
+    setPrompt("You Lost! Type 'Y' to play again!");
+    shouldPlayAgainHandler(input);
+  },
+  isSyllablesValid: function (input, hmm) {
+    if (input.trim() === '') return false;
+    if (!Utils.isNumeric(input)) return false;
+    // TODO:  do I even need the next (2) line(s)
+    //if (!Utils.is_string_an_int_between(input, 1, numSyl)) return false;
+    if (!Utils.is_string_an_int_between(input, 1, 9)) return false;
+  },
+  isRhymeValid: function (input) {
+    if (input.trim() === '') return false;
+    if (Utils.isNumeric(input)) return false;
+    if (!Utils.is_whole_word_alpha(input)) return false;
+    return true;
+  },
+};
+
+export class sylFunctions {
+  static parseSyllables(input) {
+    let numSyl = parseInt(input);
+    hmm.numSyllables = numSyl;
+    let sylArrays = sylFunctions.getMainRespAsSylArraysObject(
+      hmm,
+      parseInt(numSyl)
     );
-}
-export function syllablesHandler(input, hmm) {
-  let numSyl = parseInt(input);
-  hmm.numSyllables = numSyl;
-  if (input.trim() === '') return;
-  if (!Utils.isNumeric(input)) return;
-  if (!Utils.is_string_an_int_between(input, 1, numSyl)) return;
-  let sylArrays = getMainRespAsSylArraysObject(hmm);
-  let sylChoiceArray = trimListByNumSyl(sylArrays, numSyl);
-  hmm.choice = Utils.choose(sylChoiceArray);
-  console.log('hmm.choice: ', hmm.choice);
-  for (var letter of hmm.choice) {
-    if (letter === ' ') hmm.fullGuess.push(' ');
-    else hmm.fullGuess.push('_');
+    let sylChoiceArray = sylFunctions.trimListByNumSyl(sylArrays, numSyl);
+    hmm.choice = Utils.choose(sylChoiceArray);
+    console.log('hmm.choice: ', hmm.choice);
+    for (var letter of hmm.choice) {
+      if (letter === ' ') hmm.fullGuess.push(' ');
+      else hmm.fullGuess.push('_');
+    }
+    hmm.state = 'guess';
+    return true;
   }
-  //addOutputLn('answer: ' + hmm.choice);
-  hmm.state = 'guess';
-  //setPrompt('Guess a letter: ');
-}
-
-export async function rhymeHandler(input, hmm) {
-  if (input.trim() === '') return;
-  if (Utils.isNumeric(input)) return;
-  if (!Utils.is_whole_word_alpha(input)) return;
-  let response = await ap.getResponse(input);
-  console.log(response);
-  hmm.mainResponse = response;
-  hmm.state = 'syllables';
-  //setPrompt('syllables: ');
-}
-
-function getMainRespAsSylArraysObject(hmm) {
-  let allSylsArray = getAllSylsArray(hmm);
-  let sylChoicesArrays = getEmptySylChoicesArrayAsObject(allSylsArray);
-  return getSylChoicesArraysAsObject(sylChoicesArrays);
-  function getSylChoicesArraysAsObject(sylChoicesArraysAsObjects) {
+  static getMainRespAsSylArraysObject(hmm, numSyl) {
+    let allSylsArray = sylFunctions.getAllSylsArray(hmm);
+    let sylChoicesArrays =
+      sylFunctions.getEmptySylChoicesArrayAsObject(allSylsArray);
+    return sylFunctions.getSylChoicesArraysAsObject(sylChoicesArrays);
+  }
+  static getSylChoicesArraysAsObject(sylChoicesArraysAsObjects) {
     for (var wordGroup of hmm.mainResponse.data) {
       sylChoicesArraysAsObjects[wordGroup.numSyllables].push(wordGroup.word);
     }
     return sylChoicesArraysAsObjects;
   }
-  function getEmptySylChoicesArrayAsObject(allSylsArray) {
+  static getEmptySylChoicesArrayAsObject(allSylsArray) {
     let sylChoicesArrays = {};
     let max = Math.max(...allSylsArray);
     for (var i = 1; i < max + 1; i++) {
@@ -72,24 +77,24 @@ function getMainRespAsSylArraysObject(hmm) {
     }
     return sylChoicesArrays;
   }
-  function getAllSylsArray(hmm) {
+  static getAllSylsArray(hmm) {
     let allSylsArray = [];
     for (var wordGroup of hmm.mainResponse.data) {
       allSylsArray.push(wordGroup.numSyllables);
     }
     return allSylsArray;
   }
-}
-
-function trimListByNumSyl(sylArrays, numSyl) {
-  return sylArrays[numSyl];
+  static trimListByNumSyl(sylArrays, numSyl) {
+    return sylArrays[numSyl];
+  }
 }
 
 export function mainGameLoop(guess) {
   let result;
-  if (guess.trim() === '') return;
-  if (Utils.isNumeric(guess)) return;
-  if (!Utils.is_whole_word_alpha(guess)) return;
+  if (guess.trim() === '') return false;
+  if (Utils.isNumeric(guess)) return false;
+  if (!Utils.is_whole_word_alpha(guess)) return false;
+  if (guess.length > 1) return false;
   let isCorrectGuess = false;
   let msg = '';
   for (var idx in hmm.choice) {

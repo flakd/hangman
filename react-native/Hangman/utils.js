@@ -25,10 +25,10 @@ class Utils {
     }
     return spaces;
   }
-  static char(numChars) {
+  static char(char, numChars) {
     let chars = '';
     for (var i = 0; i < numChars; i++) {
-      chars += ' ';
+      chars += char;
     }
     return chars;
   }
@@ -38,40 +38,6 @@ class Utils {
   static choose(choices) {
     var index = Math.floor(Math.random() * choices.length);
     return choices[index];
-  }
-  static printInnerTextAsPre_Clear(el, pre_text) {
-    if (!el) {
-      console.error('printInnerTextAsPre: missing element');
-      return;
-    }
-    el.innerText = '';
-    el.innerText += pre_text + '\n';
-  }
-  static printInnerTextAsPre(el, pre_text) {
-    if (!el) {
-      console.error('printInnerTextAsPre: missing element');
-      return;
-    }
-    //el.innerText = '<pre>' + '\n';
-    el.innerText += pre_text + '\n';
-    //el.innerText += '</pre>' + '\n';
-  }
-  static printInnerHTMLAsPre_Clear(el, pre_text) {
-    if (!el) {
-      console.error('printInnerHTMLAsPre_Clear: missing element');
-      return;
-    }
-    el.innerHTML = '';
-    el.innerHTML += pre_text + '\n';
-  }
-  static printInnerHTMLAsPre(el, pre_text) {
-    if (!el) {
-      console.error('printInnerHTMLAsPre: missing element');
-      return;
-    }
-    //el.innerHTML += '<code>';
-    el.innerHTML += pre_text + '\n';
-    //el.innerHTML += '</code>' + '\n';
   }
   static hasNumber(myString) {
     return /\d/.test(myString);
