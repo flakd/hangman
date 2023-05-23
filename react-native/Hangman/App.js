@@ -5,7 +5,7 @@ import MyButton from './components/MyButton';
 import Rhyme from './components/Rhyme';
 import Syllables from './components/Syllables';
 import Output from './components/Output';
-import {AnswerListProvider, HangmanModel, Cat} from './hangman.js';
+import {AnswerListProvider, HangmanModel, Cat, ap, hmm} from './hangman.js';
 //import {hm_view} from './hangman.js';
 import Msgs from './hangman_messages';
 import Keyboard from './components/Keyboard';
@@ -13,23 +13,6 @@ import Banner from './components/Banner';
 import Heading from './components/Heading';
 import Status from './components/Status';
 import Prompt from './components/Prompt';
-
-//const ap = new AnswerListProvider();
-const feline = new Cat();
-let hmm;
-function initGame() {
-  hmm = new HangmanModel();
-  hmm.fullGuess = [];
-  hmm.choice = 'thisisatest';
-  hmm.guessesRemaining = 6;
-  hmm.wrongGuesses = [];
-  hmm.mainResponse = null;
-  hmm.numSyllables = 3;
-  hmm.state = 'rhyme';
-  hmm.numAnswerWords = 1;
-  hmm.numUniqueLetters = 6;
-}
-initGame();
 
 export default function App() {
   const [gameState, setGameState] = useState('rhyme');
@@ -50,17 +33,21 @@ export default function App() {
             hmm.numSyllables
           )}
         </Heading>
-        <Status>Status Messages Appear Here</Status>
+        <Status>Status Messages</Status>
         {gameState === 'rhyme' && (
           <Prompt
-            gameState={gameState}
+            changeGameState={changeGameState}
             hmm={hmm}
+            ap={ap}
+            gameState='rhyme'
           />
         )}
         {gameState === 'syllables' && (
           <Prompt
             changeGameState={changeGameState}
             hmm={hmm}
+            ap={ap}
+            gameState='syllables'
           />
         )}
         {gameState !== 'rhyme' && gameState !== 'syllables' && (
@@ -75,7 +62,7 @@ export default function App() {
             )}
           />
         )}
-        <Keyboard />
+        {gameState !== 'rhyme' && gameState !== 'syllables' && <Keyboard />}
       </View>
     </SafeAreaView>
   );

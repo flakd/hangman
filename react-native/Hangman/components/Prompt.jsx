@@ -12,11 +12,17 @@ const Prompt = (props) => {
         <Rhyme
           style={styles.input_label}
           hmm={props.hmm}
+          ap={props.ap}
           changeGameState={props.changeGameState}
         />
       )}
       {props.gameState === 'syllables' && (
-        <Syllables style={styles.input_label} />
+        <Syllables
+          style={styles.input_label}
+          hmm={props.hmm}
+          ap={props.ap}
+          changeGameState={props.changeGameState}
+        />
       )}
     </View>
   );

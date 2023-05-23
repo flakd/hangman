@@ -94,6 +94,12 @@ const Keyboard = () => {
       ];
     }
     setButtonsActive(kbMap);
+    /*     setButtonsActive((buttonsActive) => {
+      return {
+        ...buttonsActive,
+        kbMap,
+      };
+    }, []); */
     console.log(buttonsActive);
   };
 

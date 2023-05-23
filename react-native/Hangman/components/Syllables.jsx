@@ -1,8 +1,11 @@
 import React, {useState} from 'react';
 import {StyleSheet, Text, View, TextInput} from 'react-native';
+import {syllablesHandler} from '../hangman';
 
 const Syllables = (props) => {
   const [syllablesInput, setSyllablesInput] = useState('');
+  const hmm = props.hmm;
+  const ap = props.ap;
 
   const onChangeNumber = (input) => {
     setSyllablesInput(input);
@@ -10,6 +13,9 @@ const Syllables = (props) => {
 
   const onSubmitted = (event, text) => {
     console.log('submitted: input: ', syllablesInput);
+    syllablesHandler(syllablesInput, hmm);
+    console.log(hmm.state);
+    props.changeGameState('guess');
   };
   return (
     <View style={props.style}>
@@ -19,8 +25,9 @@ const Syllables = (props) => {
         onChangeText={onChangeNumber}
         onSubmitEditing={onSubmitted}
         value={syllablesInput}
-        placeholder='useless placeholder'
+        placeholder='Enter Number of Syllables'
         keyboardType='numeric'
+        returnKeyType={'done'}
       />
     </View>
   );
