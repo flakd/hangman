@@ -132,10 +132,10 @@ export function mainGameLoop(guess) {
   //}
 }
 
-function initGame() {
+export function initGame() {
   //hmm = new HangmanModel();
   hmm.fullGuess = [];
-  hmm.choice = 'this';
+  hmm.choice = 'ass';
   for (var letter of hmm.choice) {
     hmm.fullGuess.push('_');
   }
@@ -143,10 +143,10 @@ function initGame() {
   hmm.guessesRemaining = 7;
   hmm.wrongGuesses = [];
   hmm.mainResponse = null;
-  hmm.numSyllables = 3;
+  hmm.numSyllables = 0;
   hmm.state = 'rhyme';
-  hmm.numAnswerWords = 1;
-  hmm.numUniqueLetters = 7;
+  hmm.numAnswerWords = 0;
+  hmm.numUniqueLetters = 0;
   //ap = new AnswerListProvider();
 }
 

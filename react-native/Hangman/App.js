@@ -6,12 +6,20 @@ import {
   SafeAreaView,
   //Modal,
   Text,
-  TouchableOpacity,
+  //Alert,
+  Button,
+  Platform,
 } from 'react-native';
 import Modal from 'react-native-modal';
 
 import Output from './components/Output';
-import {AnswerListProvider, HangmanModel, Cat, ap, hmm} from './hangman.js';
+import {
+  AnswerListProvider,
+  HangmanModel,
+  ap,
+  hmm,
+  initGame,
+} from './hangman.js';
 //import {hm_view} from './hangman.js';
 import Msgs from './hangman_messages';
 import Keyboard from './components/Keyboard';
@@ -19,12 +27,15 @@ import Banner from './components/Banner';
 import Heading from './components/Heading';
 import Status from './components/Status';
 import Prompt from './components/Prompt';
+import MyAlert from './components/MyAlert';
 
 export default function App() {
   const [gameState, setGameState] = useState('rhyme');
   const [outputText, setOutputText] = useState('');
   const [statusText, setStatusText] = useState();
   const [isModalVisible, setIsModalVisible] = useState(true);
+  const [name, setName] = useState('');
+  let wonOrLost;
 
   useEffect(() => {
     setOutputText(
@@ -40,28 +51,29 @@ export default function App() {
   const changeGameState = (gameState) => {
     setGameState(gameState);
   };
-  const clickedYes = () => {
-    alert('You pressed yes');
-    setIsModalVisible(false);
+  const onAlertPressOK = () => {
+    console.log('OK PRESSED');
+    initGame();
+    setGameState('rhyme');
   };
-  const clickedNo = () => {
-    alert('You pressed no');
-    setIsModalVisible(false);
-  };
+  //wonOrLost = gameState === 'won' ? 'WON' : 'LOST';
+  wonOrLost = gameState === 'won' || gameState === 'lost';
   return (
     <SafeAreaView style={styles.safeContainer}>
       <StatusBar style='auto' />
       <View style={styles.parentContainer}>
         <Banner> {Msgs.getGameGreeting()}</Banner>
-        <Heading>
-          {Msgs.getHeading(
-            hmm.choice.length,
-            hmm.numUniqueLetters,
-            hmm.numAnswerWords,
-            hmm.numSyllables
-          )}
-        </Heading>
-        <Status>{statusText}</Status>
+        {gameState === 'guess' && (
+          <Heading>
+            {Msgs.getHeading(
+              hmm.choice.length,
+              hmm.numUniqueLetters,
+              hmm.numAnswerWords,
+              hmm.numSyllables
+            )}
+          </Heading>
+        )}
+        {gameState === 'guess' && <Status>{statusText}</Status>}
         {gameState === 'rhyme' && (
           <Prompt
             changeGameState={changeGameState}
@@ -88,41 +100,14 @@ export default function App() {
             onGameStateChange={setGameState}
           />
         )}
-        {gameState === 'won' ? (
-          /*           <View style={{backgroundColor: 'rgba(0, 0, 0, 0.5)', top: 400}}>
-           */ <Modal
-            animationType='slide'
-            transparent='true'
-            visible={isModalVisible}
-          >
-            <View
-              style={{
-                backgroundColor: 'rgba(255, 0, 0, 0.5)',
-                width: '100%',
-                height: '100%',
-              }}
-            >
-              <View style={styles.modalContent}>
-                <Text>Play Again?</Text>
-                <View style={{flexDirection: 'row', margin: 10}}>
-                  <TouchableOpacity
-                    style={styles.buttonYes}
-                    onPress={clickedYes}
-                  >
-                    <Text style={styles.buttonText}>Yes</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.buttonNo}
-                    onPress={clickedNo}
-                  >
-                    <Text style={styles.buttonText}>No</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        ) : /*           </View>
-         */ null}
+        {wonOrLost && (
+          <MyAlert
+            title={'YOU ' + gameState.toUpperCase() + '!!!'}
+            msg="Let's Play Again!"
+            buttonText='OK'
+            onAlertPressOK={onAlertPressOK}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
