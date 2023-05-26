@@ -30,6 +30,7 @@ export const handlers = {
     // TODO:  do I even need the next (2) line(s)
     //if (!Utils.is_string_an_int_between(input, 1, numSyl)) return false;
     if (!Utils.is_string_an_int_between(input, 1, 9)) return false;
+    return true;
   },
   isRhymeValid: function (input) {
     if (input.trim() === '') return false;
@@ -111,37 +112,41 @@ export function mainGameLoop(guess) {
   }
   let output = Msgs.getHangmanDrawing(
     hmm.fullGuess.join(' '),
-    msg,
     hmm.wrongGuesses,
     hmm.choice,
     hmm.guessesRemaining,
     hmm.numSyllables
   );
-  setOutput(output);
+  //setOutput(output);
   hmm.state = 'guess';
-  setPrompt('Guess a letter: ');
+  //setPrompt('Guess a letter: ');
   if (hmm.fullGuess.join('') === hmm.choice) {
     hmm.state = 'won';
-    return;
+    output += '\n\nYou Won!!!!';
   }
   if (hmm.guessesRemaining === 0) {
     hmm.state = 'lost';
-    return;
+    output += '\n\nYou Lost!!!!';
   }
+  return {msg: msg, output: output, gameState: hmm.state};
   //}
 }
 
 function initGame() {
   //hmm = new HangmanModel();
   hmm.fullGuess = [];
-  hmm.choice = 'thisisatest';
-  hmm.guessesRemaining = 6;
+  hmm.choice = 'this';
+  for (var letter of hmm.choice) {
+    hmm.fullGuess.push('_');
+  }
+
+  hmm.guessesRemaining = 7;
   hmm.wrongGuesses = [];
   hmm.mainResponse = null;
   hmm.numSyllables = 3;
   hmm.state = 'rhyme';
   hmm.numAnswerWords = 1;
-  hmm.numUniqueLetters = 6;
+  hmm.numUniqueLetters = 7;
   //ap = new AnswerListProvider();
 }
 

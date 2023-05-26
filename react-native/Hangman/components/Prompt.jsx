@@ -13,7 +13,7 @@ const Prompt = (props) => {
   const [isSyllables, setIsSyllables] = useState(false);
 
   const [isRhymeValid, setIsRhymeValid] = useState(true);
-  const [isSyllablesValid, setIsSyllablesValid] = useState(false);
+  const [isSyllablesValid, setIsSyllablesValid] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   const hmm = props.hmm;
@@ -38,23 +38,28 @@ const Prompt = (props) => {
     }
   }, []);
 
-  const onChangeText = (input) => {
-    if (handlers.isRhymeValid(rhymeInput)) {
+  const onChangeTextRhyme = (input) => {
+    setRhymeInput(input);
+    if (handlers.isRhymeValid(input)) {
       setRhymeInput(input.toLowerCase());
-    } else {
-      setRhymeInput(input);
     }
   };
-  const onSubmitted = (value) => {
-    console.log('value.nativeEvent.text: ', value.nativeEvent.text);
-    console.log(value.nativeEvent);
+  const onChangeTextSyllables = (input) => {
+    setSyllablesInput(input);
+  };
+  const onSubmittedRhyme = (value) => {
+    console.log(
+      'onSubmittedRhyme: value.nativeEvent.text: ',
+      value.nativeEvent.text
+    );
+    console.log('onSubmittedRhyme: value.nativeEvent: ', value.nativeEvent);
 
     console.log('submitted: input: ', rhymeInput);
     if (handlers.isRhymeValid(rhymeInput)) {
       let response;
       async function getInitialRhymeResponse() {
         response = await ap.getResponse(rhymeInput);
-        console.log('response: ', response);
+        //console.log('response: ', response);
         hmm.mainResponse = response;
       }
       getInitialRhymeResponse();
@@ -66,7 +71,28 @@ const Prompt = (props) => {
       setIsRhymeValid(false);
       setRhymeInput('');
     }
-    console.log('hmm.mainResponse: ', hmm.mainResponse);
+    //console.log('hmm.mainResponse: ', hmm.mainResponse);
+    console.log('hmm.state: ', hmm.state);
+    return;
+  };
+  const onSubmittedSyllables = (value) => {
+    console.log(
+      'onSubmittedSyllables: value.nativeEvent.text: ',
+      value.nativeEvent.text
+    );
+    console.log('onSubmittedSyllables: value.nativeEvent: ', value.nativeEvent);
+    console.log('submitted: input: ', syllablesInput);
+    if (handlers.isSyllablesValid(syllablesInput)) {
+      let response;
+      setIsSyllablesValid(true);
+      props.changeGameState('guess');
+      setIsSyllables(true);
+      //inputSyllablesRef.current.focus();
+    } else {
+      setIsSyllablesValid(false);
+      setSyllablesInput('');
+    }
+    //console.log('hmm.mainResponse: ', hmm.mainResponse);
     console.log('hmm.state: ', hmm.state);
     return;
   };
@@ -78,13 +104,13 @@ const Prompt = (props) => {
             <Text style={styles.modalText}>Enter Rhyme:</Text>
             <TextInput
               style={styles.input}
-              onChangeText={onChangeText}
-              onSubmitEditing={(value) => onSubmitted(value)}
+              onChangeText={onChangeTextRhyme}
+              onSubmitEditing={onSubmittedRhyme}
               value={rhymeInput.toLowerCase()}
               blurOnSubmit={false}
               ref={inputRhymeRef}
-              keyboardType={isSyllables ? 'numeric' : 'default'}
-              returnKeyType={isSyllables ? 'done' : 'done'}
+              keyboardType='default'
+              returnKeyType='done'
             />
             {!isRhymeValid && (
               <Text style={{color: 'red'}}>
@@ -101,13 +127,13 @@ const Prompt = (props) => {
             <TextInput
               placeholder='Enter Number of Syllables'
               style={styles.input}
-              onChangeText={onChangeText}
-              onSubmitEditing={(value) => onSubmitted(value)}
+              onChangeText={onChangeTextSyllables}
+              onSubmitEditing={onSubmittedSyllables}
               value={syllablesInput}
               blurOnSubmit={false}
               ref={inputSyllablesRef}
-              keyboardType={isSyllables ? 'numeric' : 'default'}
-              returnKeyType={isSyllables ? 'done' : 'done'}
+              keyboardType='numeric'
+              returnKeyType='done'
             />
             {!isSyllablesValid ? (
               <Text style={{color: 'red'}}>

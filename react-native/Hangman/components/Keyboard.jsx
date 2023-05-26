@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, SafeAreaView} from 'react-native';
 import MyButton from './MyButton';
+import {mainGameLoop} from '../hangman';
 
-const Keyboard = () => {
+const Keyboard = (props) => {
   const [buttonsActive, setButtonsActive] = useState({});
   const [is_a_Disabled, setIs_a_Disabled] = useState(false);
   const [is_b_Disabled, setIs_b_Disabled] = useState(false);
@@ -52,7 +53,8 @@ const Keyboard = () => {
       array['ENTER'] = [null, 140, false];
       return array;
     };
-    keyboardMap = setupFullKeyboard();
+    //keyboardMap = setupFullKeyboard();
+    keyboardMap = setupAlphaArray();
     setButtonsActive(keyboardMap);
   }, []);
 
@@ -101,6 +103,10 @@ const Keyboard = () => {
       };
     }, []); */
     console.log(buttonsActive);
+    const result = mainGameLoop(keyChar);
+    props.onStatusChange(result.msg);
+    props.onOutputChange(result.output);
+    props.onGameStateChange(result.gameState);
   };
 
   const keysArray = Object.keys(buttonsActive);

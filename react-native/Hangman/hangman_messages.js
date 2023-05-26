@@ -36,7 +36,6 @@ class Msgs {
 
   static getHangmanDrawing(
     pWord,
-    msg,
     gWrongGuesses,
     gChoice,
     gGuessesRemaining,
@@ -46,19 +45,14 @@ class Msgs {
     let wGuesses = gWrongGuesses.join(' ');
     let numUnique = Utils.getNumUniqueLetters(gChoice);
     let numTotal = gChoice.length;
-    //let banner = Msgs.getHeading(numTotal, numUnique);
     let numAnswerWords = gChoice.split(' ').length;
-    //let footer = Msgs.getFooter(numAnswerWords, gNumSyllables);
 
-    //let preMsg = banner + footer + '\n';
-    let preMsg = '';
-    msg = preMsg + msg;
-    //this.printIT('\n');
-
+    let bodyPartsNoose = '   ';
     let bodyPartsHead = '   ';
     let bodyPartsTorso = '   ';
     let bodyPartsLegs = '   ';
 
+    if (gGuessesRemaining < 7) bodyPartsNoose = ' ! ';
     if (gGuessesRemaining < 6) bodyPartsHead = ' O ';
     if (gGuessesRemaining === 4) bodyPartsTorso = ' | ';
     if (gGuessesRemaining === 3) bodyPartsTorso = '/| ';
@@ -67,16 +61,16 @@ class Msgs {
     if (gGuessesRemaining === 0) bodyPartsLegs = '/ \\';
 
     let output = '';
-    output += `${msg}`;
     output += '\n';
     output += `  +-----+     Wrong Guesses\n`;
-    output += `  |/    !     -------------\n`;
+    output += `  |/   ${bodyPartsNoose}     -------------\n`;
     output += `  |    ${bodyPartsHead}    ${wGuesses}\n`;
     output += `  |    ${bodyPartsTorso}  \n`;
     output += `  |    ${bodyPartsLegs}   \n`;
-    output += `  |                      \n`;
-    output += ` /|\\        ${pWord}        \n`;
+    output += ` /|\\                     \n`;
     output += `/_|_\\                    \n`;
+    output += `                          \n`;
+    output += ` ${pWord}`;
     return output;
   }
 }
