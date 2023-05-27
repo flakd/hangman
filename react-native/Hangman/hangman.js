@@ -2,28 +2,20 @@ import Msgs from './hangman_messages.js';
 import {AnswerListProvider} from './hangman_answer.js';
 import Utils from './utils.js';
 
-export class HangmanModel {}
+export class HangmanModel {
+  fullGuess;
+  choice;
+  fullGuess;
+  guessesRemaining;
+  wrongGuesses;
+  mainResponse;
+  numSyllables;
+  state;
+  numAnswerWords;
+  numUniqueLetters;
+}
 
-export const handlers = {
-  shouldPlayAgain: function (input) {
-    if (input === 'y') {
-      initGame();
-      hmm.state = 'rhyme';
-      setPrompt('Enter a rhyming word: ');
-      setOutput('');
-    } else if (input === 'n')
-      setOutput(
-        "Sorry you won't be playing again.\n Have a great day!  Bye now.\n"
-      );
-  },
-  wonHandler: function (input) {
-    setPrompt("You Won! Type 'Y' to play again!");
-    shouldPlayAgainHandler(input);
-  },
-  lostHandler: function (input) {
-    setPrompt("You Lost! Type 'Y' to play again!");
-    shouldPlayAgainHandler(input);
-  },
+export const validaters = {
   isSyllablesValid: function (input, hmm) {
     if (input.trim() === '') return false;
     if (!Utils.isNumeric(input)) return false;
@@ -44,19 +36,17 @@ export class sylFunctions {
   static parseSyllables(input) {
     let numSyl = parseInt(input);
     hmm.numSyllables = numSyl;
-    let sylArrays = sylFunctions.getMainRespAsSylArraysObject(
-      hmm,
-      parseInt(numSyl)
-    );
+    let sylArrays = sylFunctions.getMainRespAsSylArraysObject(hmm, numSyl);
     let sylChoiceArray = sylFunctions.trimListByNumSyl(sylArrays, numSyl);
     hmm.choice = Utils.choose(sylChoiceArray);
     console.log('hmm.choice: ', hmm.choice);
+    hmm.fullGuess = [];
     for (var letter of hmm.choice) {
       if (letter === ' ') hmm.fullGuess.push(' ');
       else hmm.fullGuess.push('_');
     }
     hmm.state = 'guess';
-    return true;
+    return;
   }
   static getMainRespAsSylArraysObject(hmm, numSyl) {
     let allSylsArray = sylFunctions.getAllSylsArray(hmm);
@@ -86,11 +76,16 @@ export class sylFunctions {
     return allSylsArray;
   }
   static trimListByNumSyl(sylArrays, numSyl) {
+    console.log(sylArrays[numSyl]);
     return sylArrays[numSyl];
   }
 }
 
-export function mainGameLoop(guess) {
+export function mainGameLoop(guess: string): {
+  msg: string,
+  output: string,
+  gameState: string,
+} {
   let result;
   if (guess.trim() === '') return false;
   if (Utils.isNumeric(guess)) return false;
@@ -110,16 +105,8 @@ export function mainGameLoop(guess) {
     hmm.guessesRemaining -= 1;
     msg = "'" + guess + "' is wrong";
   }
-  let output = Msgs.getHangmanDrawing(
-    hmm.fullGuess.join(' '),
-    hmm.wrongGuesses,
-    hmm.choice,
-    hmm.guessesRemaining,
-    hmm.numSyllables
-  );
-  //setOutput(output);
+  let output = Msgs.getOutput(hmm);
   hmm.state = 'guess';
-  //setPrompt('Guess a letter: ');
   if (hmm.fullGuess.join('') === hmm.choice) {
     hmm.state = 'won';
     output += '\n\nYou Won!!!!';
@@ -133,28 +120,20 @@ export function mainGameLoop(guess) {
 }
 
 export function initGame() {
-  //hmm = new HangmanModel();
   hmm.fullGuess = [];
   hmm.choice = 'ass';
   for (var letter of hmm.choice) {
     hmm.fullGuess.push('_');
   }
-
   hmm.guessesRemaining = 7;
   hmm.wrongGuesses = [];
   hmm.mainResponse = null;
-  hmm.numSyllables = 0;
+  hmm.numSyllables = null;
   hmm.state = 'rhyme';
-  hmm.numAnswerWords = 0;
-  hmm.numUniqueLetters = 0;
-  //ap = new AnswerListProvider();
+  hmm.numAnswerWords = null;
+  hmm.numUniqueLetters = null;
 }
 
-//const hm_view = new HangmanView('input', 'output', 'banner', 'prompt', 'error');
 export const ap = new AnswerListProvider();
 export var hmm = new HangmanModel();
 initGame();
-
-//hm_view.banner.innerHTML = Msgs.getGameGreeting();
-//hm_view.prompt.innerHTML = 'Enter rhyme:';
-//hm_view.input.addEventListener('keydown', keydown_handler);

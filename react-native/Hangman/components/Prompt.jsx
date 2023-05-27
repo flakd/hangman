@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {StyleSheet, Text, View, TextInput, Modal} from 'react-native';
-import {handlers} from '../hangman';
+import {sylFunctions, validaters} from '../hangman';
 import TextFixedWidth from './TextFixedWidth';
 import Msgs from '../hangman_messages';
 
@@ -40,7 +40,7 @@ const Prompt = (props) => {
 
   const onChangeTextRhyme = (input) => {
     setRhymeInput(input);
-    if (handlers.isRhymeValid(input)) {
+    if (validaters.isRhymeValid(input)) {
       setRhymeInput(input.toLowerCase());
     }
   };
@@ -55,7 +55,7 @@ const Prompt = (props) => {
     console.log('onSubmittedRhyme: value.nativeEvent: ', value.nativeEvent);
 
     console.log('submitted: input: ', rhymeInput);
-    if (handlers.isRhymeValid(rhymeInput)) {
+    if (validaters.isRhymeValid(rhymeInput)) {
       let response;
       async function getInitialRhymeResponse() {
         response = await ap.getResponse(rhymeInput);
@@ -82,12 +82,12 @@ const Prompt = (props) => {
     );
     console.log('onSubmittedSyllables: value.nativeEvent: ', value.nativeEvent);
     console.log('submitted: input: ', syllablesInput);
-    if (handlers.isSyllablesValid(syllablesInput)) {
-      let response;
+    if (validaters.isSyllablesValid(syllablesInput)) {
+      sylFunctions.parseSyllables(syllablesInput);
+      console.log(hmm.choice);
       setIsSyllablesValid(true);
       props.changeGameState('guess');
       setIsSyllables(true);
-      //inputSyllablesRef.current.focus();
     } else {
       setIsSyllablesValid(false);
       setSyllablesInput('');

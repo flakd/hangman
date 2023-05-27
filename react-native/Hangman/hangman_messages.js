@@ -1,4 +1,5 @@
 import Utils from './utils.js';
+import {hmm} from './hangman.js';
 
 class Msgs {
   inputPhrase = 'Please guess a letter: ';
@@ -32,6 +33,16 @@ class Msgs {
       "=== Flak's Hangman! ===\n";
     //'=========================\n';
     return myText;
+  }
+
+  static getOutput(hmm) {
+    return Msgs.getHangmanDrawing(
+      hmm.fullGuess.join(' '),
+      hmm.wrongGuesses,
+      hmm.choice,
+      hmm.guessesRemaining,
+      hmm.numSyllables
+    );
   }
 
   static getHangmanDrawing(

@@ -1,26 +1,11 @@
 import {StatusBar} from 'expo-status-bar';
 import React, {useState, useEffect} from 'react';
-import {
-  StyleSheet,
-  View,
-  SafeAreaView,
-  //Modal,
-  Text,
-  //Alert,
-  Button,
-  Platform,
-} from 'react-native';
+import {StyleSheet, View, SafeAreaView} from 'react-native';
 import Modal from 'react-native-modal';
 
 import Output from './components/Output';
-import {
-  AnswerListProvider,
-  HangmanModel,
-  ap,
-  hmm,
-  initGame,
-} from './hangman.js';
-//import {hm_view} from './hangman.js';
+import {ap, hmm, initGame} from './hangman.js';
+import Utils from './utils.js';
 import Msgs from './hangman_messages';
 import Keyboard from './components/Keyboard';
 import Banner from './components/Banner';
@@ -35,19 +20,10 @@ export default function App() {
   const [statusText, setStatusText] = useState();
   const [isModalVisible, setIsModalVisible] = useState(true);
   const [name, setName] = useState('');
-  let wonOrLost;
 
   useEffect(() => {
-    setOutputText(
-      Msgs.getHangmanDrawing(
-        hmm.fullGuess.join(' '),
-        ['w', 'r', 'ong'],
-        'this',
-        7,
-        3
-      )
-    );
-  }, []);
+    setOutputText(Msgs.getOutput(hmm));
+  }, [gameState]);
   const changeGameState = (gameState) => {
     setGameState(gameState);
   };
@@ -55,9 +31,16 @@ export default function App() {
     console.log('OK PRESSED');
     initGame();
     setGameState('rhyme');
+    setOutputText(Msgs.getOutput(hmm));
+    setGameState('rhyme');
   };
   //wonOrLost = gameState === 'won' ? 'WON' : 'LOST';
-  wonOrLost = gameState === 'won' || gameState === 'lost';
+  const wonOrLost = gameState === 'won' || gameState === 'lost';
+  const guessOrWonOrLost = gameState === 'guess' || wonOrLost;
+  const notRhymeNorSyllables =
+    gameState !== 'rhyme' && gameState !== 'syllables';
+  hmm.numUniqueLetters = Utils.getNumUniqueLetters(hmm.choice);
+  hmm.numAnswerWords = Utils.getNumAnswerWords(hmm.choice);
   return (
     <SafeAreaView style={styles.safeContainer}>
       <StatusBar style='auto' />
@@ -73,7 +56,7 @@ export default function App() {
             )}
           </Heading>
         )}
-        {gameState === 'guess' && <Status>{statusText}</Status>}
+        {guessOrWonOrLost && <Status>{statusText}</Status>}
         {gameState === 'rhyme' && (
           <Prompt
             changeGameState={changeGameState}
@@ -90,10 +73,10 @@ export default function App() {
             gameState='syllables'
           />
         )}
-        {gameState !== 'rhyme' && gameState !== 'syllables' && (
+        {notRhymeNorSyllables && (
           <Output style={styles.output}>{outputText}</Output>
         )}
-        {gameState !== 'rhyme' && gameState !== 'syllables' && (
+        {notRhymeNorSyllables && (
           <Keyboard
             onStatusChange={setStatusText}
             onOutputChange={setOutputText}
@@ -103,9 +86,16 @@ export default function App() {
         {wonOrLost && (
           <MyAlert
             title={'YOU ' + gameState.toUpperCase() + '!!!'}
-            msg="Let's Play Again!"
+            msg={
+              "\nThe Answer was '" +
+              Utils.toTitleCase(hmm.choice) +
+              "'\n\nBut, let's Play Again!!!"
+            }
             buttonText='OK'
-            onAlertPressOK={onAlertPressOK}
+            onAlertPressOK={() => {
+              console.log('OK pressed');
+              onAlertPressOK();
+            }}
           />
         )}
       </View>
