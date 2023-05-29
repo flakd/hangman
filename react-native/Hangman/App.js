@@ -4,7 +4,7 @@ import {StyleSheet, View, SafeAreaView} from 'react-native';
 import Modal from 'react-native-modal';
 
 import Output from './components/Output';
-import {ap, hmm, initGame} from './hangman.js';
+import {ap, hmm, initGame} from './hangman.ts';
 import Utils from './utils.js';
 import Msgs from './hangman_messages';
 import Keyboard from './components/Keyboard';

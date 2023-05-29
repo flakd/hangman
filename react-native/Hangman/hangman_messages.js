@@ -1,5 +1,4 @@
 import Utils from './utils.js';
-import {hmm} from './hangman.js';
 
 class Msgs {
   inputPhrase = 'Please guess a letter: ';
